@@ -6,13 +6,15 @@ namespace teacher_rating.Models;
 [BsonIgnoreExtraElements]
 public class Teacher: BaseEntity
 {
+    [BsonElement("name")]
     public string Name { get; set; }
+    
+    [BsonElement("phone_number")]
+    public string PhoneNumber { get; set; }
+    
+    [BsonElement("email")]
     public string Email { get; set; }
-    public string Phone { get; set; }
-    public string Address { get; set; }
-    public string Avatar { get; set; }
-    public string Description { get; set; }
-    public string Degree { get; set; }
-    public string Position { get; set; }
-    public string DepartmentId { get; set; }
+    
+    [BsonElement("assessment_records")]
+    public List<AssessmentRecord> AssessmentRecords { get; set; }
 }
