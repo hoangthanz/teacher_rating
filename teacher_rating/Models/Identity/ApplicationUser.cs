@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AspNetCore.Identity.MongoDbCore.Models;
+using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDbGenericRepository.Attributes;
 
 namespace teacher_rating.Models.Identity;
 
 
 [BsonIgnoreExtraElements]
-public class ApplicationUser : IdentityUser<int>
+[CollectionName("users")]
+public class ApplicationUser : MongoIdentityUser<Guid>
 {
     public bool IsActive { get; set; }
     public string? ActiveCode { get; set; }

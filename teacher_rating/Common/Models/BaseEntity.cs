@@ -11,6 +11,6 @@ namespace teacher_rating.Common.Models
         public string Id { get; set; }
         
         [BsonElement("decription")] 
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

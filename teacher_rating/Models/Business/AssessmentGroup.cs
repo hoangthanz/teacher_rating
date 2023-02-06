@@ -8,9 +8,9 @@ namespace teacher_rating.Models;
 public class AssessmentGroup : BaseEntity
 {
     [BsonElement("group_name")]
-    public string GroupName { get; set; }
+    public string? GroupName { get; set; }
 
     [BsonElement("teacher_ids")]
-    public List<string> TeacherIds { get; set; }
+    public List<string>? TeacherIds { get; set; }
     
 }

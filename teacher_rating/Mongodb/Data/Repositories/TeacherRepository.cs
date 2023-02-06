@@ -41,22 +41,7 @@ public class TeacherRepository : ITeacherRepository
     {
         return await _teachersCollection.Find(teacher => teacher.Id == id).FirstOrDefaultAsync();
     }
-
-    public async Task<Teacher> CreateTeacher(Teacher teacher)
-    {
-        await _teachersCollection.InsertOneAsync(teacher);
-        return teacher;
-    }
-
-    public async Task UpdateTeacher(string id, Teacher teacherIn)
-    {
-        await _teachersCollection.ReplaceOneAsync(teacher => teacher.Id == id, teacherIn);
-    }
-
-    public async Task RemoveTeacher(Teacher teacherIn)
-    {
-        await _teachersCollection.DeleteOneAsync(teacher => teacher.Id == teacherIn.Id);
-    }
+    
 
     public async Task RemoveTeacher(string id)
     {
