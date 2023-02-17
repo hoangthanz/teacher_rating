@@ -3,6 +3,7 @@ using teacher_rating.Common.Models;
 
 namespace teacher_rating.Models;
 
+[BsonIgnoreExtraElements]
 public class AssessmentCriteria : BaseEntity
 {
     [BsonElement("name")] 

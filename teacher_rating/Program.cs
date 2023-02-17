@@ -53,6 +53,10 @@ builder.Services.ConfigureMongoDbIdentity<ApplicationUser, ApplicationRole, Guid
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<IAssessmentCriteriaGroupRepository, AssessmentCriteriaGroupRepository>();
+builder.Services.AddScoped<IAssessmentCriteriaRepository, AssessmentCriteriaRepository>();
+builder.Services.AddScoped<ISelfCriticismRepository, SelfCriticismRepository>();
+builder.Services.AddScoped<ITeacherGroupRepository, TeacherGroupRepository>();
 
 
 builder.Services.AddAuthentication(
