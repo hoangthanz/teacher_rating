@@ -37,6 +37,11 @@ public class AssessmentCriteriaRepository : IAssessmentCriteriaRepository
         await _mongoCollection.InsertOneAsync(criteria);
     }
 
+    public async Task AddAssessmentCriterList(List<AssessmentCriteria> criteriaList)
+    {
+        await _mongoCollection.InsertManyAsync(criteriaList);
+    }
+
     public async Task UpdateAssessmentCriter(AssessmentCriteria criteria)
     {
         await _mongoCollection.ReplaceOneAsync(t => criteria.Id == t.Id, criteria);

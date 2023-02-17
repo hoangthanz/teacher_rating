@@ -9,9 +9,6 @@ public class AssessmentCriteria : BaseEntity
     [BsonElement("name")] 
     public string Name { get; set; }
     
-    [BsonElement("max_score")] 
-    public double MaxScore { get; set; }
-    
     [BsonElement("deduct_score")] 
     public double DeductScore { get; set; }
     
@@ -20,4 +17,9 @@ public class AssessmentCriteria : BaseEntity
     
     [BsonElement("value")] 
     public double Value { get; set; }
+    
+    [BsonElement("unit")]
+    public string Unit { get; set; }
+    
+    public string? AssessmentCriteriaGroupId { get; set; }
 }

@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using ServiceStack.Text;
 using teacher_rating.Models.Identity;
 using teacher_rating.Properties.Dtos;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
@@ -58,11 +52,11 @@ namespace teacher_rating.Controllers
                     };
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString())
+                    new(ClaimTypes.Name, user.UserName),
+                    new(ClaimTypes.Email, user.Email),
+                    new(ClaimTypes.MobilePhone, user.PhoneNumber),
+                    new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
                 };
             
                 var roles = await _userManager.GetRolesAsync(user);

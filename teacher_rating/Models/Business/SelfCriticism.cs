@@ -12,9 +12,9 @@ public class SelfCriticism: BaseEntity
     [BsonElement("year")] 
     public int Year { get; set; }
     [BsonElement("teacherId")] 
-    public string TeacherId { get; set; }
+    public string? TeacherId { get; set; }
     [BsonElement("teacher")] 
-    public Teacher Teacher { get; set; }
+    public Teacher? Teacher { get; set; }
     
     [BsonElement("assessmentCriterias")] 
     public List<AssessmentCriteria> AssessmentCriterias { get; set; }
@@ -26,8 +26,8 @@ public class SelfCriticism: BaseEntity
     
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     [BsonElement("user")] 
-    public ApplicationUser User { get; set; }
+    public ApplicationUser? User { get; set; }
     [BsonElement("userId")] 
-    public string UserId { get; set; }
+    public string? UserId { get; set; }
     
 }
