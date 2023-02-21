@@ -30,5 +30,30 @@ public class RespondApi<T>
 
 public enum ResultRespond
 {
-    Error, Succeeded, Failed, NotFound, Duplication
+    Success = 0,
+    Fail = 1,
+    Error = 2,
+    NotFound = 3,
+    Unauthorized = 4,
+    Forbidden = 5,
+    BadRequest = 6,
+    Conflict = 7,
+    NoContent = 8,
+    UnprocessableEntity = 9,
+    Locked = 10,
+    UnavailableForLegalReasons = 11,
+    TooManyRequests = 12,
+    InternalServerError = 13,
+    NotImplemented = 14,
+    BadGateway = 15,
+    ServiceUnavailable = 16,
+    GatewayTimeout = 17,
+    HttpVersionNotSupported = 18,
+    VariantAlsoNegotiates = 19,
+    InsufficientStorage = 20,
+    LoopDetected = 21,
+    NotExtended = 22,
+    NetworkAuthenticationRequired = 23,
+    UnknownError = 24
+    
 }

@@ -5,7 +5,9 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using teacher_rating.Models;
 using teacher_rating.Models.Identity;
+using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Properties.Dtos;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
@@ -17,11 +19,12 @@ namespace teacher_rating.Controllers
     {
         private readonly  UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
-
-        public AuthencationController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+        private readonly ITeacherRepository _teacherRepository;
+        public AuthencationController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ITeacherRepository teacherRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _teacherRepository = teacherRepository;
         }
 
         [HttpPost]
@@ -37,7 +40,7 @@ namespace teacher_rating.Controllers
         {
             try
             {
-                var user = await _userManager.FindByEmailAsync(request.Email);
+                var user = await _userManager.FindByNameAsync(request.Username);
 
                 if (user is null)
                     return new LoginResponse
@@ -50,13 +53,16 @@ namespace teacher_rating.Controllers
                         Message = "User not found",
                         Success = false
                     };
+                
+                var teacher = await _teacherRepository.GetTeacherByUserId(user.Id.ToString());
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.Name, user.UserName),
                     new(ClaimTypes.Email, user.Email),
                     new(ClaimTypes.MobilePhone, user.PhoneNumber),
                     new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
+                    new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                    new("TeacherId", teacher?.Id.ToString() ?? string.Empty)
                 };
             
                 var roles = await _userManager.GetRolesAsync(user);
@@ -81,6 +87,7 @@ namespace teacher_rating.Controllers
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Message = "Login successfully",
+                    
                     Success = true
                 };
             }
@@ -124,7 +131,8 @@ namespace teacher_rating.Controllers
                 
                 var user = new ApplicationUser
                 {
-                    UserName = request.Name,
+                    Id = Guid.NewGuid(),
+                    UserName = request.UserName,
                     Email = request.Email,
                     PhoneNumber = request.PhoneNumber,
                     CreatedDate = DateTime.Now,
@@ -142,6 +150,21 @@ namespace teacher_rating.Controllers
                             Message = "Register failed",
                             Success = false
                         };
+                    
+                    // create teacher 
+                    var teacher = new Teacher
+                    {
+                        Name = request.Name,
+                        Email = request.Email,
+                        PhoneNumber = request.PhoneNumber,
+                        Id = Guid.NewGuid().ToString(),
+                        User = user,
+                        UserId = user.Id,
+                        AssessmentRecords = new List<AssessmentRecord>()
+                    };
+
+                    await _teacherRepository.AddTeacher(teacher);
+                    
                     return new RegisterResponse
                     {
                         Message = "Register successfully",

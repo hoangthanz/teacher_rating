@@ -1,5 +1,4 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
-using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDbGenericRepository.Attributes;
 

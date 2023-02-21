@@ -11,9 +11,21 @@ using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Mongodb.Data.Repositories;
+var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy  =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 // Add services to the container.
 builder.Services.Configure<TeacherRatingDatabaseSettings>(
     builder.Configuration.GetSection("TeacherRatingDatabase"));
@@ -96,6 +108,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
 

@@ -30,7 +30,7 @@ public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepos
             {
                 Data = department,
                 Message = "Success",
-                Result = ResultRespond.Succeeded
+                Result = ResultRespond.Success
             };
         }
         catch (Exception e)
@@ -53,7 +53,7 @@ public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepos
             {
                 Data = department,
                 Message = "Success",
-                Result = ResultRespond.Succeeded
+                Result = ResultRespond.Success
             };
         }
         catch (Exception e)
@@ -76,7 +76,7 @@ public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepos
             {
                 Data = null,
                 Message = "Success",
-                Result = ResultRespond.Succeeded
+                Result = ResultRespond.Success
             };
         }
         catch (Exception e)
