@@ -23,6 +23,7 @@ public class SelfCriticism: BaseEntity
 
     public bool? IsSubmitted { get; set; } = false;
     
+    public double TotalScore { get; set; }
     
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     [BsonElement("user")] 

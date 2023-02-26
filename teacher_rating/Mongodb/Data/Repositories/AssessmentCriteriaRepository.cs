@@ -32,6 +32,11 @@ public class AssessmentCriteriaRepository : IAssessmentCriteriaRepository
         return await _mongoCollection.Find(teacher => true).ToListAsync();
     }
 
+    public async Task<List<AssessmentCriteria>> GetAllAssessmentCritersByGroupId(string id)
+    {
+        return await _mongoCollection.Find(t => t.AssessmentCriteriaGroupId == id).ToListAsync();
+    }
+
     public async Task AddAssessmentCriter(AssessmentCriteria criteria)
     {
         await _mongoCollection.InsertOneAsync(criteria);

@@ -11,7 +11,6 @@ public class AssessmentCriteria : BaseEntity
     
     [BsonElement("deduct_score")] 
     public double DeductScore { get; set; }
-    
     [BsonElement("is_deduct")] 
     public bool IsDeduct { get; set; }
     

@@ -14,9 +14,11 @@ namespace teacher_rating.Controllers
     public class AssessmentCriteriaGroupController : ControllerBase
     {
         private readonly IAssessmentCriteriaGroupRepository _assessmentCriteriaGroupRepository;
-        public AssessmentCriteriaGroupController(IAssessmentCriteriaGroupRepository assessmentCriteriaGroupRepository)
+        private readonly IAssessmentCriteriaRepository _assessmentCriteriaRepository;
+        public AssessmentCriteriaGroupController(IAssessmentCriteriaGroupRepository assessmentCriteriaGroupRepository, IAssessmentCriteriaRepository assessmentCriteriaRepository)
         {
             _assessmentCriteriaGroupRepository = assessmentCriteriaGroupRepository;
+            _assessmentCriteriaRepository = assessmentCriteriaRepository;
         }
 
         [HttpGet]
@@ -30,6 +32,36 @@ namespace teacher_rating.Controllers
                 Code = "200",
                 Message = "Success",
                 Data = assessmentCriteriaGroups
+            };
+            return Ok(result);
+        }
+        
+        [HttpGet]
+        [Route("get-all-assessment-criteria")]
+        public async Task<IActionResult> GetAllAssessmentCriteria()
+        {
+            var assessmentCriteriaList  = await _assessmentCriteriaRepository.GetAllAssessmentCriters();
+            var result = new RespondApi<object>()
+            {
+                Result = ResultRespond.Success,
+                Code = "200",
+                Message = "Success",
+                Data = assessmentCriteriaList
+            };
+            return Ok(result);
+        }
+        
+        [HttpGet]
+        [Route("get-assessment-criteria/{id}")]
+        public async Task<IActionResult> GetAssessmentByGroupId(string id)
+        {
+            var assessmentCriteriaList  = await _assessmentCriteriaRepository.GetAllAssessmentCritersByGroupId(id);
+            var result = new RespondApi<object>()
+            {
+                Result = ResultRespond.Success,
+                Code = "200",
+                Message = "Success",
+                Data = assessmentCriteriaList
             };
             return Ok(result);
         }

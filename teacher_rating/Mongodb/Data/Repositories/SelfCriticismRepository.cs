@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using teacher_rating.Models;
 using teacher_rating.Mongodb.Data.Interfaces;
+using teacher_rating.Properties.Dtos;
 
 namespace teacher_rating.Mongodb.Data.Repositories;
 
@@ -30,6 +31,11 @@ public class SelfCriticismRepository: ISelfCriticismRepository
     public async Task<IEnumerable<SelfCriticism>> GetSelfCriticisms()
     {
         return await _mongoCollection.Find(teacher => true).ToListAsync();
+    }
+
+    public async Task<List<SelfCriticism>> GetSelfCriticismsByUser(string userId)
+    {
+        return await _mongoCollection.Find(teacher => teacher.UserId == userId).ToListAsync();
     }
 
     public async Task AddSelfCriticism(SelfCriticism teacher)
