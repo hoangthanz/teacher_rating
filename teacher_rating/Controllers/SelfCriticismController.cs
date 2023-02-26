@@ -34,6 +34,16 @@ namespace teacher_rating.Controllers
             try
             {
                 var selfCriticism = request;
+
+                if (selfCriticism.AssessmentCriterias.Count == 0)
+                    return Ok(new RespondApi<object>()
+                    {
+                        Result = ResultRespond.NoContent,
+                        Code = "400",
+                        Message = "Danh sách tiêu chí đánh giá không được để trống",
+                        Data = null
+                    });
+                
                 selfCriticism.Id = Guid.NewGuid().ToString();
                 selfCriticism.IsSubmitted = false;
                 double total = 0;
