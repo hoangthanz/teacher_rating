@@ -145,14 +145,6 @@ namespace teacher_rating.Controllers
                 var result = await _userManager.CreateAsync(user, request.Password);
                 if (result.Succeeded)
                 {
-                    var addRole = await _userManager.AddToRoleAsync(user, "User");
-                    if (!addRole.Succeeded)
-                        return new RegisterResponse
-                        {
-                            Message = "Register failed",
-                            Success = false
-                        };
-
                     // create teacher 
                     var teacher = new Teacher
                     {

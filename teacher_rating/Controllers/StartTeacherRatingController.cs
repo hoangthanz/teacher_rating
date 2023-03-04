@@ -87,8 +87,7 @@ namespace teacher_rating.Controllers
 
                     await _assessmentCriteriaGroupRepository.AddAssessmentCriteriaGroups(criteriaGroups);
                 }
-
-
+                
                 var assessmentCriteriases = await _assessmentCriteriaRepository.GetAllAssessmentCriters();
 
                 if (!assessmentCriteriases.Any())
