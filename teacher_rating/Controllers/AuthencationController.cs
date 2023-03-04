@@ -4,7 +4,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Mongodb.Data.Interfaces;
@@ -17,10 +19,12 @@ namespace teacher_rating.Controllers
     [ApiController]
     public class AuthencationController : ControllerBase
     {
-        private readonly  UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITeacherRepository _teacherRepository;
-        public AuthencationController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ITeacherRepository teacherRepository)
+
+        public AuthencationController(UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager, ITeacherRepository teacherRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -53,7 +57,7 @@ namespace teacher_rating.Controllers
                         Message = "User not found",
                         Success = false
                     };
-                
+
                 var teacher = await _teacherRepository.GetTeacherByUserId(user.Id.ToString());
                 var claims = new List<Claim>
                 {
@@ -64,7 +68,7 @@ namespace teacher_rating.Controllers
                     new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new("TeacherId", teacher?.Id.ToString() ?? string.Empty)
                 };
-            
+
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role));
                 claims.AddRange(roleClaims);
@@ -87,7 +91,7 @@ namespace teacher_rating.Controllers
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Message = "Login successfully",
-                    
+
                     Success = true
                 };
             }
@@ -104,9 +108,8 @@ namespace teacher_rating.Controllers
                     Success = false
                 };
             }
-       
         }
-        
+
         [HttpPost]
         [Route("register")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(RegisterResponse))]
@@ -120,7 +123,6 @@ namespace teacher_rating.Controllers
         {
             try
             {
-                
                 var userExist = await _userManager.FindByEmailAsync(request.Email);
                 if (userExist != null)
                     return new RegisterResponse
@@ -128,7 +130,7 @@ namespace teacher_rating.Controllers
                         Message = "User already exist",
                         Success = false
                     };
-                
+
                 var user = new ApplicationUser
                 {
                     Id = Guid.NewGuid(),
@@ -150,7 +152,7 @@ namespace teacher_rating.Controllers
                             Message = "Register failed",
                             Success = false
                         };
-                    
+
                     // create teacher 
                     var teacher = new Teacher
                     {
@@ -164,15 +166,15 @@ namespace teacher_rating.Controllers
                     };
 
                     await _teacherRepository.AddTeacher(teacher);
-                    
+
                     return new RegisterResponse
                     {
                         Message = "Register successfully",
                         Success = true
                     };
                 }
-                
-                
+
+
                 return new RegisterResponse
                 {
                     Message = result.Errors.First().Description,
@@ -188,8 +190,8 @@ namespace teacher_rating.Controllers
                 };
             }
         }
-        
-        
+
+
         [HttpPost("create-role")]
         public async Task<IActionResult> CreateRole([FromBody] RoleRequest request)
         {
@@ -197,14 +199,28 @@ namespace teacher_rating.Controllers
             {
                 Name = request.RoleName,
             };
-         
+
             var createRole = await _roleManager.CreateAsync(appRole);
             if (createRole.Succeeded)
             {
-                return Ok(new {message = "Create role successfully"});
+                return Ok(new { message = "Create role successfully" });
             }
-            return BadRequest(new {message = "Create role failed"});
 
+            return BadRequest(new { message = "Create role failed" });
+        }
+
+        [HttpGet("get-all-user")]
+        public async Task<IActionResult> GetUsers()
+        {
+            var users = _userManager.Users.ToList();
+            var result = new RespondApi<object>()
+            {
+                Result = ResultRespond.Success,
+                Code = "00",
+                Message = "Thành công",
+                Data = users
+            };
+            return Ok(result);
         }
     }
 }
