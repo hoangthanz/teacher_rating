@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using AspNetCore.Identity.MongoDbCore.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using teacher_rating.Common.Const;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Mongodb.Data.Interfaces;
@@ -15,18 +18,23 @@ namespace teacher_rating.Controllers
         private readonly ISelfCriticismRepository _selfCriticismRepository;
         private readonly IAssessmentCriteriaGroupRepository _assessmentCriteriaGroupRepository;
         private readonly IAssessmentCriteriaRepository _assessmentCriteriaRepository;
+        private readonly IGradeConfigurationRepository _configurationRepository;
+        private readonly ISchoolRepository _schoolRepository;
 
         public StartTeacherRatingController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             ISelfCriticismRepository selfCriticismRepository,
             IAssessmentCriteriaGroupRepository assessmentCriteriaGroupRepository,
-            IAssessmentCriteriaRepository assessmentCriteriaRepository)
+            IAssessmentCriteriaRepository assessmentCriteriaRepository,
+            IGradeConfigurationRepository configurationRepository, ISchoolRepository schoolRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _selfCriticismRepository = selfCriticismRepository;
             _assessmentCriteriaGroupRepository = assessmentCriteriaGroupRepository;
             _assessmentCriteriaRepository = assessmentCriteriaRepository;
+            _configurationRepository = configurationRepository;
+            _schoolRepository = schoolRepository;
         }
 
         [HttpPost]
@@ -35,8 +43,28 @@ namespace teacher_rating.Controllers
         {
             try
             {
+                // create default school
+                var schools = await _schoolRepository.GetAll();
+                if (!schools.Any())
+                {
+                    var school = new School
+                    {
+                        Id = DefaultConfigs.DefaultSchoolId,
+                        Name = "Trường THPT Trân Nguyên Hân",
+                        Address =
+                            "Ngõ 185 Tôn Đức Thắng, Phường An Dương, Quận Lê Chân, Hải Phòng",
+                        IsDeleted = false,
+                        Teachers = new List<Teacher>(),
+                        AssessmentGroups = new List<AssessmentGroup>()
+                    };
+
+                    // add school to db
+                    await _schoolRepository.Create(school);
+                }
+
                 var assessmentCriteriaGroups =
                     await _assessmentCriteriaGroupRepository.GetAllAssessmentCriteriaGroups();
+
                 if (!assessmentCriteriaGroups.Any())
                 {
                     var criteriaGroups = new List<AssessmentCriteriaGroup>()
@@ -45,49 +73,57 @@ namespace teacher_rating.Controllers
                         {
                             Id = "9f861ecb-779c-4f99-986b-60504df316e4",
                             Name = "Thực hiện ngày giờ công, ý thức lao động",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
                             Name = "Thực hiện các hồ sơ sổ sách, giấy tờ, báo cáo, kế hoạch",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "e74719f0-1477-4e39-bc07-618b5f3cc469",
                             Name = "Thực hiện chuyên môn, nghiệp vụ theo phân công nhiệm vụ",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "112bb16e-0e37-40e1-a30e-805e928b6b50",
                             Name =
                                 "Thực hiện công tác chủ nhiệm, HĐ ngoài giờ lên lớp, trải nghiệm; quản sinh, trực giám thị, quản sinh",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "175e324a-93e9-4b98-b7ec-57400667439b",
                             Name = "Tham gia hoạt động đoàn thể, CSVC",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "e800e9e2-f5b8-4e7a-b6a3-69f89006f6a7",
                             Name = "Thực hiện ngày giờ công, ý thức lao động",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "5bd81480-c41e-43b2-b985-370186434728",
                             Name = "Hồ sơ sổ sách",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
                             Id = "60536031-d330-4d1f-9057-4cabf6ad3416",
                             Name = "Công tác khác",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                     };
 
 
                     await _assessmentCriteriaGroupRepository.AddAssessmentCriteriaGroups(criteriaGroups);
                 }
-                
+
                 var assessmentCriteriases = await _assessmentCriteriaRepository.GetAllAssessmentCriters();
 
                 if (!assessmentCriteriases.Any())
@@ -105,7 +141,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 0,
                             Unit = "",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -116,7 +153,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 40,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -127,7 +165,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -138,7 +177,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -149,7 +189,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -160,7 +201,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 1,
                             Unit = "Tiết",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -171,7 +213,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 3,
                             Unit = "Buổi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -182,7 +225,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 0.5,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -193,7 +237,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 1,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -204,7 +249,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -215,7 +261,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -226,7 +273,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -237,7 +285,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -248,7 +297,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -259,7 +309,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4"
+                            AssessmentCriteriaGroupId = "9f861ecb-779c-4f99-986b-60504df316e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                     };
 
@@ -274,7 +325,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -285,7 +337,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "Hồ sơ sổ sách",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -296,7 +349,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -307,7 +361,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -318,7 +373,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -329,7 +385,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 1,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                     };
                     var criteriasPlus2 = new List<AssessmentCriteria>()
@@ -343,10 +400,11 @@ namespace teacher_rating.Controllers
                             DeductScore = 5,
                             Unit = "",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4"
+                            AssessmentCriteriaGroupId = "46e5e5c4-3590-4575-a3e2-b5139a0998e4",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                     };
-                    
+
                     var criteriasMinus3 = new List<AssessmentCriteria>()
                     {
                         new()
@@ -358,7 +416,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Lần",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -369,7 +428,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 2,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -380,7 +440,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -391,7 +452,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -402,7 +464,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -413,7 +476,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lỗi",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -424,7 +488,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "HĐ",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -435,11 +500,12 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Tiết",
                             IsDeduct = true,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                     };
-                    
-                     var criteriasPlus3 = new List<AssessmentCriteria>()
+
+                    var criteriasPlus3 = new List<AssessmentCriteria>()
                     {
                         new()
                         {
@@ -450,7 +516,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Đề",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -461,7 +528,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Đề",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -472,7 +540,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Khối",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -483,7 +552,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lần",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -494,7 +564,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Lần",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -505,7 +576,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Lần",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -516,7 +588,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 3,
                             Unit = "Tiết",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -527,7 +600,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Buổi",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -538,7 +612,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 60,
                             Unit = "",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -549,7 +624,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 30,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -560,7 +636,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 25,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -571,7 +648,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -582,7 +660,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 15,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -593,7 +672,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -604,7 +684,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 25,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -615,7 +696,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 30,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -626,7 +708,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 10,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                         new()
                         {
@@ -637,7 +720,8 @@ namespace teacher_rating.Controllers
                             DeductScore = 20,
                             Unit = "Giải",
                             IsDeduct = false,
-                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469"
+                            AssessmentCriteriaGroupId = "e74719f0-1477-4e39-bc07-618b5f3cc469",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
                         },
                     };
                     allCriteriaGroups.AddRange(criteriasMinus1);
@@ -647,6 +731,147 @@ namespace teacher_rating.Controllers
                     allCriteriaGroups.AddRange(criteriasPlus3);
                     await _assessmentCriteriaRepository.AddAssessmentCriterList(allCriteriaGroups);
                 }
+
+                var roles = _roleManager.Roles.ToList();
+
+                if (roles.Count <= 0)
+                {
+                    // add roles default for system - application role
+
+                    var roleAdmin = new ApplicationRole()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Admin",
+                        NormalizedName = "Admin".ToUpper(),
+                        Version = 1,
+                        DisplayName = "Admin",
+                        CanDelete = false,
+                        Claims = new List<MongoClaim>()
+                        {
+                            new MongoClaim()
+                            {
+                                Type = "Permission",
+                                Value = "Admin",
+                            },
+                            new MongoClaim()
+                            {
+                                Type = "Permission",
+                                Value = "Teacher",
+                            }
+                        }
+                    };
+
+                    // role teacher
+                    var roleTeacher = new ApplicationRole()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Teacher",
+                        NormalizedName = "Teacher".ToUpper(),
+                        Version = 1,
+                        DisplayName = "Teacher",
+                        CanDelete = false,
+                        Claims = new List<MongoClaim>()
+                        {
+                            new MongoClaim()
+                            {
+                                Type = "Permission",
+                                Value = "Teacher",
+                            }
+                        }
+                    };
+
+                    // add role to db
+                    await _roleManager.CreateAsync(roleAdmin);
+                    await _roleManager.CreateAsync(roleTeacher);
+                }
+
+                var users = _userManager.Users.ToList();
+                if (users.Count <= 0)
+                {
+                    // create user admin
+                    var userAdmin = new ApplicationUser()
+                    {
+                        Id = Guid.NewGuid(),
+                        UserName = "admin",
+                        NormalizedUserName = "admin".ToUpper(),
+                        Email = "admin@gmail.com",
+                        DisplayName = "Quản trị hệ thống",
+                        NormalizedEmail = "",
+                        EmailConfirmed = true,
+                        PhoneNumber = "0123456789",
+                        PhoneNumberConfirmed = true,
+                        IsActive = true,
+                        SchoolId = DefaultConfigs.DefaultSchoolId,
+                    };
+                    var result = await _userManager.CreateAsync(userAdmin, "123123aA@");
+                    if (result.Succeeded)
+                    {
+                        // add role admin for user admin
+                        await _userManager.AddToRoleAsync(userAdmin, "Admin");
+
+                        // add role teacher for user admin
+                        await _userManager.AddToRoleAsync(userAdmin, "Teacher");
+
+                        // add claim for user admin
+                        await _userManager.AddClaimAsync(userAdmin, new Claim("Permission", "Admin"));
+                        await _userManager.AddClaimAsync(userAdmin, new Claim("Permission", "Teacher"));
+                    }
+                }
+
+
+                var grades = await _configurationRepository.GetAllGradeConfigurations();
+                if (!grades.Any())
+                {
+                    // create grade default
+
+                    var grade1 = new GradeConfiguration()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Xuất sắc",
+                        Description =
+                            "Hoàn thành xuất sắc nhiệm vụ: Từ 130 điểm trở lên. (Cả năm: Có ít nhất 01 công trình khoa học, đề án, đề tài hoặc sáng kiến được áp dụng và mang lại hiệu quả trong việc thực hiện công tác chuyên môn, nghề nghiệp được nhà trường công nhận)",
+                        MinimumScore = 130,
+                        MaximumScore = 99999,
+                        SchoolId = DefaultConfigs.DefaultSchoolId,
+                    };
+
+                    var grade2 = new GradeConfiguration()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Tốt",
+                        Description = "Hoàn thành tốt nhiệm vụ: Từ 110 điểm đến dưới 130 điểm",
+                        MinimumScore = 110,
+                        MaximumScore = 129,
+                        SchoolId = DefaultConfigs.DefaultSchoolId,
+                    };
+
+                    var grade3 = new GradeConfiguration()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Khá",
+                        Description = "Hoàn thành khá nhiệm vụ: Từ 90 điểm đến dưới 110 điểm",
+                        MinimumScore = 90,
+                        MaximumScore = 109,
+                        SchoolId = DefaultConfigs.DefaultSchoolId,
+                    };
+
+                    var grade4 = new GradeConfiguration()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Không hoàn thành",
+                        Description = "Không hoàn thành nhiệm vụ: Dưới 90 điểm.",
+                        MinimumScore = 0,
+                        MaximumScore = 89,
+                        SchoolId = DefaultConfigs.DefaultSchoolId,
+                    };
+
+                    // add grade to db
+                    await _configurationRepository.AddGradeConfiguration(grade1);
+                    await _configurationRepository.AddGradeConfiguration(grade2);
+                    await _configurationRepository.AddGradeConfiguration(grade3);
+                    await _configurationRepository.AddGradeConfiguration(grade4);
+                }
+
 
                 return Ok();
             }

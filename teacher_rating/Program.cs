@@ -40,7 +40,7 @@ var mongoDbSettings = new MongoDbIdentityConfiguration()
 {
     MongoDbSettings = new MongoDbSettings()
     {
-        ConnectionString = $"mongodb://localhost:27017",
+        ConnectionString = $"mongodb://localhost:8011",
         DatabaseName = $"TeacherRatingDb"
     },IdentityOptionsAction = options =>
     {
@@ -69,6 +69,8 @@ builder.Services.AddScoped<IAssessmentCriteriaGroupRepository, AssessmentCriteri
 builder.Services.AddScoped<IAssessmentCriteriaRepository, AssessmentCriteriaRepository>();
 builder.Services.AddScoped<ISelfCriticismRepository, SelfCriticismRepository>();
 builder.Services.AddScoped<ITeacherGroupRepository, TeacherGroupRepository>();
+builder.Services.AddScoped<IGradeConfigurationRepository, GradeConfigurationRepository>();
+builder.Services.AddScoped<ISchoolRepository, SchoolRepository>();
 
 
 builder.Services.AddAuthentication(
@@ -101,11 +103,8 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

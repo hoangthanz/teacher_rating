@@ -10,4 +10,5 @@ public class UpdateUser
     public string ConfirmPassword { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
+    public string SchoolId { get; set; } = null!;
 }

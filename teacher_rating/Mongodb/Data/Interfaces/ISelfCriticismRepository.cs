@@ -1,5 +1,4 @@
 ﻿using teacher_rating.Models;
-using teacher_rating.Properties.Dtos;
 
 namespace teacher_rating.Mongodb.Data.Interfaces;
 

@@ -1,5 +1,4 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 using teacher_rating.Common.Models;
 
 namespace teacher_rating.Models;
@@ -13,4 +12,5 @@ public class AssessmentGroup : BaseEntity
     [BsonElement("teacher_ids")]
     public List<string>? TeacherIds { get; set; }
     
+    public string? SchoolId { get; set; }
 }

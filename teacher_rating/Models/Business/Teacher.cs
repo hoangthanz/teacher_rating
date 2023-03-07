@@ -21,4 +21,7 @@ public class Teacher: BaseEntity
     
     public Guid UserId { get; set; }
     public ApplicationUser User { get; set; }
+    
+    [BsonElement("schoolId")] 
+    public string SchoolId { get; set; }
 }

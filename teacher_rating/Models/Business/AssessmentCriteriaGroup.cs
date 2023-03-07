@@ -8,4 +8,7 @@ public class AssessmentCriteriaGroup : BaseEntity
 {
     [BsonElement("name")] 
     public string Name { get; set; }
+    
+    [BsonElement("schoolId")] 
+    public string SchoolId { get; set; }
 }

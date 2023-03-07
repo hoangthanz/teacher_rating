@@ -8,4 +8,6 @@ namespace teacher_rating.Models;
 public class Department: BaseEntity
 {
     public string Name { get; set; }
+    [BsonElement("schoolId")] 
+    public string SchoolId { get; set; }
 }

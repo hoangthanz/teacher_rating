@@ -11,4 +11,6 @@ public class TeacherRatingDatabaseSettings
     public string AssessmentCriteriaCollectionName { get; set; } = null!;
     public string AssessmentCriteriaGroupCollectionName { get; set; } = null!;
     public string SelfCriticismCollectionName { get; set; } = null!;
+    public string GradeConfigurationCollectionName { get; set; } = null!;
+    public string SchoolCollectionName { get; set; } = null!;
 }

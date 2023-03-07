@@ -2,7 +2,6 @@
 using MongoDB.Driver;
 using teacher_rating.Models;
 using teacher_rating.Mongodb.Data.Interfaces;
-using teacher_rating.Properties.Dtos;
 
 namespace teacher_rating.Mongodb.Data.Repositories;
 

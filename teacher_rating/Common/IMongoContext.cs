@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 
 namespace CKLS.Services.Models.MongoDb.Common

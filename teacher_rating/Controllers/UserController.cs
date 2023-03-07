@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
@@ -29,7 +25,35 @@ namespace teacher_rating.Controllers
             _teacherRepository = teacherRepository;
         }
 
-
+        [HttpGet]
+        [Route("get-roles")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _roleManager.Roles.ToListAsync();
+            return Ok(new RespondApi<object>()
+            {
+                Message = "Success",
+                Result = ResultRespond.Success,
+                Code = "00",
+                Data = roles
+            });
+        }
+       
+        
+        [HttpGet]
+        [Route("get-user-by-school-id/{schoolId}")]
+        public async Task<IActionResult> GetUsersBySchool(string schoolId)
+        {
+            var users = _userManager.Users.Where(x => x.SchoolId == schoolId).ToList();
+            return Ok(new RespondApi<object>()
+            {
+                Message = "Success",
+                Result = ResultRespond.Success,
+                Code = "00",
+                Data = users
+            });
+        }
+        
         [HttpPost]
         [Route("create-user")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUser request)
@@ -44,22 +68,14 @@ namespace teacher_rating.Controllers
                 CreatedDate = DateTime.Now,
                 UpdatedDate = DateTime.Now,
                 IsActive = true,
-                ActiveCode = Guid.NewGuid().ToString()
+                ActiveCode = Guid.NewGuid().ToString(),
+                IsDeleted = false,
+                SchoolId = request.SchoolId
             };
 
             var result = await _userManager.CreateAsync(user, request.Password);
             if (result.Succeeded)
             {
-                var addRole = await _userManager.AddToRoleAsync(user, "User");
-                if (!addRole.Succeeded)
-                    return Ok(new RespondApi<object>()
-                    {
-                        Message = "Register failed",
-                        Result = ResultRespond.NotImplemented,
-                        Code = "00",
-                        Data = null!
-                    });
-
                 // create teacher 
                 var teacher = new Teacher
                 {
@@ -73,6 +89,10 @@ namespace teacher_rating.Controllers
                 };
 
                 await _teacherRepository.AddTeacher(teacher);
+                
+                // add role for user
+                await _userManager.AddToRoleAsync(user, "Teacher");
+                    
 
                 return Ok(new RespondApi<object>()
                 {
@@ -134,6 +154,67 @@ namespace teacher_rating.Controllers
                 return Ok(new RespondApi<object>()
                 {
                     Message = "Register success",
+                    Result = ResultRespond.Success,
+                    Code = "00",
+                    Data = user
+                });
+            }
+
+            return Ok(new RespondApi<object>()
+            {
+                Message = "Register failed",
+                Result = ResultRespond.Fail,
+                Code = "00",
+                Data = null!
+            });
+        }
+        
+        [HttpDelete("remove-user/{id}")]
+        public async Task<IActionResult> RemoveUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user is null)
+                return Ok(new RespondApi<object>()
+                {
+                    Message = "Không tìm thấy user",
+                    Result = ResultRespond.NotFound,
+                    Code = "00",
+                    Data = null!
+                });
+
+            if (user.UserName.ToLower() == "admin")
+            {
+                return Ok(new RespondApi<object>()
+                {
+                    Message = "Không thể xóa tài khoản admin",
+                    Result = ResultRespond.NotFound,
+                    Code = "00",
+                    Data = null!
+                });
+            }
+            
+            user.IsDeleted = true;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                var teacher = await _teacherRepository.GetTeacherByUserId(id);
+                if (teacher is null)
+                    return Ok(new RespondApi<object>()
+                    {
+                        Message = "Không tìm thấy giáo viên",
+                        Result = ResultRespond.NotFound,
+                        Code = "00",
+                        Data = null!
+                    });
+
+                teacher.IsDeleted = true;
+                
+                await _teacherRepository.UpdateTeacher(teacher);
+
+                return Ok(new RespondApi<object>()
+                {
+                    Message = "Remove success",
                     Result = ResultRespond.Success,
                     Code = "00",
                     Data = user

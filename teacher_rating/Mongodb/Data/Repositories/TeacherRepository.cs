@@ -22,7 +22,7 @@ public class TeacherRepository : ITeacherRepository
             teacherRatingSettings.Value.TeacherCollectionName);
     }
 
-    public async Task<Teacher> GetTeacherByUserId(string userId)
+    public async Task<Teacher?> GetTeacherByUserId(string userId)
     {
         return await _teachersCollection.Find(teacher => teacher.UserId == Guid.Parse(userId)).FirstOrDefaultAsync();
     }

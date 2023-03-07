@@ -20,4 +20,6 @@ public class AssessmentRecord : BaseEntity
 
     [BsonElement("competition_score_academic_year")] 
     public double CompetitionScoreAcademicYear { get; set; }
+    
+    public string? SchoolId { get; set; }
 }

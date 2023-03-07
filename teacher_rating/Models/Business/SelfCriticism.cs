@@ -31,4 +31,7 @@ public class SelfCriticism: BaseEntity
     [BsonElement("userId")] 
     public string? UserId { get; set; }
     
+    [BsonElement("schoolId")] 
+    public string SchoolId { get; set; }
+    
 }

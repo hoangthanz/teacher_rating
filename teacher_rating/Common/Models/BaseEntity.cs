@@ -1,4 +1,3 @@
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace teacher_rating.Common.Models
@@ -11,5 +10,8 @@ namespace teacher_rating.Common.Models
         
         [BsonElement("decription")] 
         public string? Description { get; set; }
+        
+        [BsonElement("isDeleted")] 
+        public bool? IsDeleted { get; set; } = false;
     }
 }

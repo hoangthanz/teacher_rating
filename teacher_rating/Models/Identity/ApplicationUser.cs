@@ -1,5 +1,4 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
-using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDbGenericRepository.Attributes;
 
@@ -15,4 +14,8 @@ public class ApplicationUser : MongoIdentityUser<Guid>
     public string? DisplayName { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
+
+    public bool? IsDeleted { get; set; } = false;
+    
+    public string? SchoolId { get; set; }
 }

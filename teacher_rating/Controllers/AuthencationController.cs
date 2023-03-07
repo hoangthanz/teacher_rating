@@ -204,7 +204,9 @@ namespace teacher_rating.Controllers
         [HttpGet("get-all-user")]
         public async Task<IActionResult> GetUsers()
         {
-            var users = _userManager.Users.ToList();
+            var users = _userManager.Users.Where(u => u.IsDeleted == false && u.UserName != "admin")
+                .ToList();
+
             var result = new RespondApi<object>()
             {
                 Result = ResultRespond.Success,
