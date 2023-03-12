@@ -28,6 +28,11 @@ public class TeacherGroupRepository : ITeacherGroupRepository
         return await _teacherGroupsCollection.Find(teacher => teacher.Id == id).FirstOrDefaultAsync();
     }
 
+    public async Task<TeacherGroup?> GetTeacherGroupByName(string name)
+    {
+        return await _teacherGroupsCollection.Find(teacher => teacher.Name == name).FirstOrDefaultAsync();
+    }
+
     public async Task<IEnumerable<TeacherGroup>> GetAllTeacherGroups()
     {
         return await _teacherGroupsCollection.Find(teacher => true).ToListAsync();

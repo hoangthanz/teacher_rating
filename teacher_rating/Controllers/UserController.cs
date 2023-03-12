@@ -96,16 +96,21 @@ namespace teacher_rating.Controllers
 
                 return Ok(new RespondApi<object>()
                 {
-                    Message = "Register failed",
+                    Message = "Register success",
                     Result = ResultRespond.Success,
                     Code = "00",
                     Data = user
                 });
             }
 
+            // if register fail return error message
+            
+            
+            
+            
             return Ok(new RespondApi<object>()
             {
-                Message = "Register failed",
+                Message = $"{result.Errors.First().Description}",
                 Result = ResultRespond.Fail,
                 Code = "00",
                 Data = null!

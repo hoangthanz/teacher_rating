@@ -24,4 +24,8 @@ public class AssessmentCriteria : BaseEntity
     
     [BsonElement("schoolId")] 
     public string SchoolId { get; set; }
+
+    [BsonElement("quantity")] 
+    public int Quantity { get; set; } = 1;
+    
 }

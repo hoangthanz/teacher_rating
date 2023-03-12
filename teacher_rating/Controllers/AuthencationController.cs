@@ -66,7 +66,9 @@ namespace teacher_rating.Controllers
                     new(ClaimTypes.MobilePhone, user.PhoneNumber),
                     new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new("TeacherId", teacher?.Id.ToString() ?? string.Empty)
+                    new("TeacherId", teacher?.Id ?? string.Empty),
+                    new("SchoolId", user?.SchoolId ?? string.Empty),
+                    
                 };
 
                 var roles = await _userManager.GetRolesAsync(user);

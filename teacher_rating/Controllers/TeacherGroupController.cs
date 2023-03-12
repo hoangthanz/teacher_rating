@@ -1,4 +1,3 @@
-
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
@@ -13,10 +12,11 @@ namespace teacher_rating.Controllers
     {
         private readonly ITeacherGroupRepository _teacherGroupRepository;
         private readonly string? _userId;
+
         public TeacherGroupController(
             ITeacherGroupRepository teacherGroupRepository,
             IHttpContextAccessor httpContext
-            )
+        )
         {
             _teacherGroupRepository = teacherGroupRepository;
             _userId = httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier) != null
@@ -49,13 +49,19 @@ namespace teacher_rating.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> AddTeacherGroup(TeacherGroup teacherGroup)
         {
+            var teacherGroupExist = await _teacherGroupRepository.GetTeacherGroupByName(teacherGroup.Name);
+
+            if (teacherGroupExist is not null)
+                return Ok(new RespondApi<object>()
+                    { Data = null, Code = "0", Result = ResultRespond.Error, Message = "Trùng tên tổ" });
+
+            teacherGroup.Id = Guid.NewGuid().ToString();
             await _teacherGroupRepository.AddTeacherGroup(teacherGroup);
 
-            return CreatedAtRoute("GetTeacherGroupById", new { id = teacherGroup.Id },
-                new RespondApi<TeacherGroup>("Add teacher group successfully.", teacherGroup, null));
+            return Ok(new RespondApi<TeacherGroup>("Create teacher group successfully.", teacherGroup, null));
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateTeacherGroup(string id, TeacherGroup teacherGroupIn)
         {
             var teacherGroup = await _teacherGroupRepository.GetTeacherGroupById(id);
@@ -67,6 +73,12 @@ namespace teacher_rating.Controllers
             }
 
             teacherGroupIn.Id = id;
+
+            var teacherGroupExist = await _teacherGroupRepository.GetTeacherGroupByName(teacherGroupIn.Name);
+
+            if (teacherGroupExist is not null)
+                return Ok(new RespondApi<object>()
+                    { Data = null, Code = "0", Result = ResultRespond.Error, Message = "Trùng tên tổ" });
 
             await _teacherGroupRepository.UpdateTeacherGroup(teacherGroupIn);
 
