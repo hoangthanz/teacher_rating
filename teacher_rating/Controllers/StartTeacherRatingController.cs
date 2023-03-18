@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Const;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers
@@ -47,15 +48,11 @@ namespace teacher_rating.Controllers
                 var schools = await _schoolRepository.GetAll();
                 if (!schools.Any())
                 {
-                    var school = new School
+                    var school = new CreateSchool
                     {
-                        Id = DefaultConfigs.DefaultSchoolId,
                         Name = "Trường THPT Trân Nguyên Hân",
                         Address =
                             "Ngõ 185 Tôn Đức Thắng, Phường An Dương, Quận Lê Chân, Hải Phòng",
-                        IsDeleted = false,
-                        Teachers = new List<Teacher>(),
-                        AssessmentGroups = new List<AssessmentGroup>()
                     };
 
                     // add school to db

@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.Options;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
+using ServiceStack;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Mongodb.Data.Repositories;
@@ -9,8 +10,7 @@ public class TeacherRepository : ITeacherRepository
 {
     private readonly IMongoCollection<Teacher> _teachersCollection;
 
-    public TeacherRepository(
-        IOptions<TeacherRatingDatabaseSettings> teacherRatingSettings)
+    public TeacherRepository(Microsoft.Extensions.Options.IOptions<TeacherRatingDatabaseSettings> teacherRatingSettings)
     {
         var mongoClient = new MongoClient(
             teacherRatingSettings.Value.ConnectionString);
@@ -30,6 +30,11 @@ public class TeacherRepository : ITeacherRepository
     public async Task<IEnumerable<Teacher>> GetAllTeachers()
     {
         return await _teachersCollection.Find(teacher => true).ToListAsync();
+    }
+
+    public async Task<List<Teacher>> GetByIds(List<string> ids)
+    {
+        return await _teachersCollection.Find(teacher => ids.Contains(teacher.Id.ToString())).ToListAsync();
     }
 
     public async Task AddTeacher(Teacher teacher)
@@ -55,6 +60,12 @@ public class TeacherRepository : ITeacherRepository
 
     public async Task<List<Teacher>> GetTeachersOfGroup(string groupId)
     {
-        return await _teachersCollection.Find(teacher => teacher.GroupId.Contains(groupId)).ToListAsync();
+        return await _teachersCollection.Find(teacher => teacher.GroupId.Contains(groupId))
+            .ToListAsync();
+    }
+
+    public Task<List<Teacher>> GetTeachersForRating(SearchTeacherForRating model)
+    {
+        throw new NotImplementedException();
     }
 }

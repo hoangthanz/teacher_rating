@@ -11,6 +11,8 @@ using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Mongodb.Data.Repositories;
+using teacher_rating.Mongodb.Services;
+
 const string myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +73,7 @@ builder.Services.AddScoped<ISelfCriticismRepository, SelfCriticismRepository>();
 builder.Services.AddScoped<ITeacherGroupRepository, TeacherGroupRepository>();
 builder.Services.AddScoped<IGradeConfigurationRepository, GradeConfigurationRepository>();
 builder.Services.AddScoped<ISchoolRepository, SchoolRepository>();
+builder.Services.AddScoped<IGroupTeacherService, GroupTeacherService>();
 
 
 builder.Services.AddAuthentication(

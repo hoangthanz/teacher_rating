@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using teacher_rating.Common.Models;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Mongodb.Data.Repositories;
@@ -29,9 +31,21 @@ public class SchoolRepository: ISchoolRepository
         return await _collection.Find(new BsonDocument()).ToListAsync();
     }
 
-    public async Task Create(School school)
+    public async Task<RespondApi<School>> Create(CreateSchool model)
     {
+        var oldSchool = await _collection.Find(x => x.Name == model.Name && x.Address == model.Address).FirstOrDefaultAsync();
+        if (oldSchool != null)
+            return new RespondApi<School>()
+                { Result = ResultRespond.Fail, Message = "Trường đã tồn tại trong hệ thống" };
+        var school = new School
+        {
+            Name = model.Name,
+            Address = model.Address,
+            Description = model.Description,
+            IsDeleted = false
+        };
         await _collection.InsertOneAsync(school);
+        return new RespondApi<School>() { Result = ResultRespond.Success, Data = school, Message = "Thành công"};
     }
 
     public async Task<bool> Update(string id, School school)

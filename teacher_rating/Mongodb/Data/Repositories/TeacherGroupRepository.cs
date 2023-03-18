@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Mongodb.Data.Interfaces;
 

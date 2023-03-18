@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers
@@ -52,25 +53,19 @@ namespace teacher_rating.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<RespondApi<School>>> Create([FromBody] School school)
+        public async Task<ActionResult<RespondApi<School>>> Create([FromBody] CreateSchool school)
         {
             try
             {
-                await _schoolRepository.Create(school);
+                var result = await _schoolRepository.Create(school);
 
-                return Ok(new RespondApi<School>
-                {
-                    Result = ResultRespond.Success,
-                    Data = school,
-                    Message = "School created successfully"
-                });
+                return Ok(result);
             }
             catch (Exception e)
             {
                 return Ok(new RespondApi<School>
                 {
                     Result = ResultRespond.Success,
-                    Data = school,
                     Message = "School created failed",
                     Error = e
                 });

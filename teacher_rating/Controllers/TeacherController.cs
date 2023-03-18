@@ -18,5 +18,5 @@ public class TeacherController : ControllerBase
     {
         var teachers = await _teacherRepository.GetTeachersOfGroup(groupId);
         return Ok(teachers);
-    }   
+    }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Mongodb.Data.Interfaces;
+using teacher_rating.Mongodb.Services;
 
 namespace teacher_rating.Controllers
 {
@@ -11,14 +12,15 @@ namespace teacher_rating.Controllers
     public class TeacherGroupController : ControllerBase
     {
         private readonly ITeacherGroupRepository _teacherGroupRepository;
+        private readonly IGroupTeacherService _groupTeacherService; 
         private readonly string? _userId;
 
         public TeacherGroupController(
             ITeacherGroupRepository teacherGroupRepository,
-            IHttpContextAccessor httpContext
-        )
+            IHttpContextAccessor httpContext, IGroupTeacherService groupTeacherService)
         {
             _teacherGroupRepository = teacherGroupRepository;
+            _groupTeacherService = groupTeacherService;
             _userId = httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier) != null
                 ? httpContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 : null;
@@ -99,6 +101,13 @@ namespace teacher_rating.Controllers
             await _teacherGroupRepository.RemoveTeacherGroup(teacherGroup.Id);
 
             return Ok(new RespondApi<TeacherGroup>("Remove teacher group successfully.", teacherGroup, null));
+        }
+        
+        [HttpPut("add-teacher-to-group/{groupid}")]
+        public async Task<IActionResult> AddTeacherToGroup([FromBody] List<string> teacherIds, string groupId)
+        {
+            var result = _groupTeacherService.AddTeachersToGroup(teacherIds, groupId);
+            return Ok(result);
         }
     }
 }
