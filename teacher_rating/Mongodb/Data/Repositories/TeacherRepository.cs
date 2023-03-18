@@ -52,4 +52,9 @@ public class TeacherRepository : ITeacherRepository
     {
         await _teachersCollection.DeleteOneAsync(teacher => teacher.Id == id);
     }
+
+    public async Task<List<Teacher>> GetTeachersOfGroup(string groupId)
+    {
+        return await _teachersCollection.Find(teacher => teacher.GroupId.Contains(groupId)).ToListAsync();
+    }
 }

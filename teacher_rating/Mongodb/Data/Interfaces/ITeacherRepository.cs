@@ -11,4 +11,5 @@ public interface ITeacherRepository
     Task AddTeacher(Teacher teacher);
     Task UpdateTeacher(Teacher teacher);
     Task RemoveTeacher(string id);
+    Task<List<Teacher>> GetTeachersOfGroup(string groupId);
 }

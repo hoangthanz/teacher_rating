@@ -24,4 +24,6 @@ public class Teacher: BaseEntity
     
     [BsonElement("schoolId")] 
     public string SchoolId { get; set; }
+    [BsonElement("group_id")]
+    public string GroupId { get; set; }
 }
