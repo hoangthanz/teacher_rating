@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Properties.Dtos;
 
@@ -165,6 +166,13 @@ namespace teacher_rating.Controllers
                     Error = e
                 });
             }
+        }
+
+        [HttpGet("get-by-condition")]
+        public async Task<IActionResult> GetByCondition([FromQuery] SearchSelfCriticism model)
+        {
+            var result = await _selfCriticismRepository.GetByCondition(model);
+            return Ok(result);
         }
     }
 }

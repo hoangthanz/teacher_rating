@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using teacher_rating.Models;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers;
@@ -18,5 +19,11 @@ public class TeacherController : ControllerBase
     {
         var teachers = await _teacherRepository.GetTeachersOfGroup(groupId);
         return Ok(teachers);
+    }
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] Teacher teacher)
+    {
+        await _teacherRepository.UpdateTeacher(teacher);
+        return Ok();
     }
 }
