@@ -1,8 +1,11 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System.ComponentModel;
+using MongoDB.Bson.Serialization.Attributes;
 using teacher_rating.Common.Models;
 
 namespace teacher_rating.Models;
 
+[BsonIgnoreExtraElements]
+[Description("Cấu hình xếp loại")]
 public class GradeConfiguration : BaseEntity
 {
     [BsonElement("name")]

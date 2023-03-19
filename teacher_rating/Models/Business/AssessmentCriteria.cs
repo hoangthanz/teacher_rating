@@ -1,9 +1,11 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using ServiceStack.DataAnnotations;
 using teacher_rating.Common.Models;
 
 namespace teacher_rating.Models;
 
 [BsonIgnoreExtraElements]
+[Description("Tiêu chí đánh giá")]
 public class AssessmentCriteria : BaseEntity
 {
     [BsonElement("name")] 

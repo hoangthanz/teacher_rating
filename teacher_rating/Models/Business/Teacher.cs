@@ -1,10 +1,12 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System.ComponentModel;
+using MongoDB.Bson.Serialization.Attributes;
 using teacher_rating.Common.Models;
 using teacher_rating.Models.Identity;
 
 namespace teacher_rating.Models;
 
 [BsonIgnoreExtraElements]
+[Description("Giáo viên")]
 public class Teacher: BaseEntity
 {
     [BsonElement("name")]

@@ -1,10 +1,12 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using ServiceStack.DataAnnotations;
 using teacher_rating.Common.Const;
 using teacher_rating.Common.Models;
 
 namespace teacher_rating.Models;
 
 [BsonIgnoreExtraElements]
+[Description("Nhóm giáo viên")]
 public class TeacherGroup : BaseEntity
 {
     [BsonElement("name")] public string Name { get; set; }

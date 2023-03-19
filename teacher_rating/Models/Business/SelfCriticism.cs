@@ -1,10 +1,12 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System.ComponentModel;
+using MongoDB.Bson.Serialization.Attributes;
 using teacher_rating.Common.Models;
 using teacher_rating.Models.Identity;
 
 namespace teacher_rating.Models;
 
 [BsonIgnoreExtraElements]
+[Description("Bản tự khai đánh giá cá nhân")]
 public class SelfCriticism: BaseEntity
 {
     [BsonElement("month")] 
