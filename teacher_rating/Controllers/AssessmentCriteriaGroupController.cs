@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers
@@ -91,14 +92,15 @@ namespace teacher_rating.Controllers
             };
             return Ok(result);
         }
-        
+
         [HttpPost]
         [Route("update-assessment-criteria-group")]
         public async Task<IActionResult> UpdateAssessmentCriteriaGroup(AssessmentCriteriaGroup group)
         {
             // check group name exist
             var assessmentCriteriaGroup = await _assessmentCriteriaGroupRepository.GetAllAssessmentCriteriaGroups();
-            if (assessmentCriteriaGroup.Any(x => x.Name == group.Name && group.SchoolId == x.SchoolId && x.Id != group.Id))
+            if (assessmentCriteriaGroup.Any(x =>
+                    x.Name == group.Name && group.SchoolId == x.SchoolId && x.Id != group.Id))
             {
                 return Ok(new RespondApi<object>()
                 {
@@ -108,8 +110,7 @@ namespace teacher_rating.Controllers
                     Data = null
                 });
             }
-            
-            
+
 
             await _assessmentCriteriaGroupRepository.UpdateAssessmentCriteriaGroup(group);
             var result = new RespondApi<object>()
@@ -121,7 +122,7 @@ namespace teacher_rating.Controllers
             };
             return Ok(result);
         }
-        
+
         [HttpDelete]
         [Route("delete-assessment-criteria-group/{id}")]
         public async Task<IActionResult> UpdateAssessmentCriteriaGroup(string id)
@@ -137,7 +138,7 @@ namespace teacher_rating.Controllers
                     Message = "Không tìm thấy nhóm tiêu chí",
                     Data = null
                 });
-            
+
             // delete all assessment criteria
             await _assessmentCriteriaGroupRepository.RemoveAssessmentCriteriaGroup(id);
             var result = new RespondApi<object>
@@ -146,6 +147,36 @@ namespace teacher_rating.Controllers
                 Code = "200",
                 Message = "Success",
                 Data = group
+            };
+            return Ok(result);
+        }
+
+
+        [HttpPost]
+        [Route("create-assessment-criteria")]
+        public async Task<IActionResult> CreateAssessmentCriteria(CreateAssessmentCriteria assessmentCriteria)
+        {
+            // check group name exist
+            var criteria = new AssessmentCriteria()
+            {
+                Id = Guid.NewGuid().ToString(),
+                AssessmentCriteriaGroupId = assessmentCriteria.AssessmentCriteriaGroupId,
+                Name = assessmentCriteria.Name,
+                SchoolId = assessmentCriteria.SchoolId,
+                Quantity = assessmentCriteria.Quantity,
+                Unit = assessmentCriteria.Unit,
+                Value = assessmentCriteria.Value,
+                IsDeduct = assessmentCriteria.IsDeduct,
+                DeductScore = assessmentCriteria.DeductScore,
+                IsDeleted = false
+            };
+            await _assessmentCriteriaRepository.AddAssessmentCriter(criteria);
+            var result = new RespondApi<object>
+            {
+                Result = ResultRespond.Success,
+                Code = "200",
+                Message = "Success",
+                Data = criteria
             };
             return Ok(result);
         }
