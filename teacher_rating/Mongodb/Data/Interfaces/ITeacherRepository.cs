@@ -14,5 +14,6 @@ public interface ITeacherRepository
     Task UpdateTeacher(Teacher teacher);
     Task RemoveTeacher(string id);
     Task<List<Teacher>> GetTeachersOfGroup(string groupId);
+    Task<List<Teacher>> GetTeachersOfSchool(string id);
     Task<List<Teacher>> GetTeachersForRating(SearchTeacherForRating model);
 }
