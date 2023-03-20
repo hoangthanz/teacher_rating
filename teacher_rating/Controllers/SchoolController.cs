@@ -73,7 +73,7 @@ namespace teacher_rating.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<RespondApi<School>>> Update(string id, [FromBody] School school)
+        public async Task<ActionResult<RespondApi<School>>> Update(string id, [FromBody] UpdateSchool school)
         {
             var existingSchool = await _schoolRepository.GetById(id);
 
@@ -87,9 +87,11 @@ namespace teacher_rating.Controllers
                 });
             }
 
-            school.Id = existingSchool.Id;
+            existingSchool.Name = school.Name;
+            existingSchool.Address = school.Address;
+            existingSchool.Description = school.Description;
 
-            var updatedSchool = await _schoolRepository.Update(id, school);
+            var updatedSchool = await _schoolRepository.Update(id, existingSchool);
             if (!updatedSchool)
                 return Ok(new RespondApi<School>
                 {
