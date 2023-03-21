@@ -20,6 +20,14 @@ public class TeacherController : ControllerBase
         var teachers = await _teacherRepository.GetTeachersOfGroup(groupId);
         return Ok(teachers);
     }
+    
+    [HttpGet("get-by-school/{schoolId}")]
+    public async Task<IActionResult> GetBySchool(string schoolId)
+    {
+        var teachers = await _teacherRepository.GetTeachersOfSchool(schoolId);
+        return Ok(teachers);
+    }
+    
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] Teacher teacher)
     {

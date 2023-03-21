@@ -5,6 +5,7 @@ using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
+using ZstdSharp.Unsafe;
 
 namespace teacher_rating.Mongodb.Data.Repositories;
 
@@ -28,7 +29,8 @@ public class SchoolRepository: ISchoolRepository
 
     public async Task<List<School>> GetAll()
     {
-        return await _collection.Find(new BsonDocument()).ToListAsync();
+        var result = await _collection.Find(r => r.IsDeleted == false).ToListAsync();
+        return result;
     }
 
     public async Task<RespondApi<School>> Create(CreateSchool model)
@@ -39,6 +41,7 @@ public class SchoolRepository: ISchoolRepository
                 { Result = ResultRespond.Fail, Message = "Trường đã tồn tại trong hệ thống" };
         var school = new School
         {
+            Id = Guid.NewGuid().ToString(),
             Name = model.Name,
             Address = model.Address,
             Description = model.Description,
@@ -50,13 +53,8 @@ public class SchoolRepository: ISchoolRepository
 
     public async Task<bool> Update(string id, School school)
     {
-        var filter = Builders<School>.Filter.Eq("_id", id);
-        var update = Builders<School>.Update
-            .Set("Name", school.Name)
-            .Set("Address", school.Address);
-
-        var result = await _collection.UpdateOneAsync(filter, update);
-        return result.ModifiedCount > 0;
+        var updated = await _collection.ReplaceOneAsync(t => id == t.Id, school);
+        return updated.IsAcknowledged;
     }
 
     public async Task<bool> Delete(string id)

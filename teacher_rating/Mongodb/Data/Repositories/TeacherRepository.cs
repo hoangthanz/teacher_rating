@@ -64,6 +64,12 @@ public class TeacherRepository : ITeacherRepository
             .ToListAsync();
     }
 
+    public async Task<List<Teacher>> GetTeachersOfSchool(string id)
+    {
+         return await _teachersCollection.Find(teacher => teacher.SchoolId.Contains(id))
+            .ToListAsync();
+    }
+
     public Task<List<Teacher>> GetTeachersForRating(SearchTeacherForRating model)
     {
         throw new NotImplementedException();
