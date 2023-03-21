@@ -9,6 +9,7 @@ public interface ISelfCriticismRepository
     Task<SelfCriticism> GetSelfCriticismById(string id);
     Task<IEnumerable<SelfCriticism>> GetSelfCriticisms();
     Task<List<SelfCriticism>> GetSelfCriticismsByUser(string userId);
+    Task<List<SelfCriticism>> GetSelfCriticismsByTeacher(string teacherId, int? month, int? year);
     Task AddSelfCriticism(SelfCriticism teacher);
     Task UpdateSelfCriticism(SelfCriticism teacher);
     Task RemoveSelfCriticism(string id);

@@ -27,7 +27,7 @@ public class TeacherRepository : ITeacherRepository
         return await _teachersCollection.Find(teacher => teacher.UserId == Guid.Parse(userId)).FirstOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<Teacher>> GetAllTeachers()
+    public async Task<List<Teacher>> GetAllTeachers()
     {
         return await _teachersCollection.Find(teacher => true).ToListAsync();
     }

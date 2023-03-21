@@ -37,6 +37,11 @@ public class GradeConfigurationRepository : IGradeConfigurationRepository
         await _gradeConfigurationsCollection.ReplaceOneAsync(configuration => configuration.Id == gradeConfiguration.Id, gradeConfiguration);
     }
 
+    public async Task<GradeConfiguration> GetGradeConfigurationByScore(int score, string schoolId)
+    {
+        return await _gradeConfigurationsCollection.Find(x => x.MinimumScore <= score && x.MaximumScore >= score && x.SchoolId == schoolId).FirstOrDefaultAsync();
+    }
+
     public async Task RemoveGradeConfiguration(string id)
     {
         await _gradeConfigurationsCollection.DeleteOneAsync(configuration => configuration.Id == id);

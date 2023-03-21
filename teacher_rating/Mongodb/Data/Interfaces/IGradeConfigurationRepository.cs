@@ -8,5 +8,6 @@ public interface IGradeConfigurationRepository
     Task<IEnumerable<GradeConfiguration>> GetAllGradeConfigurations();
     Task AddGradeConfiguration(GradeConfiguration gradeConfiguration);
     Task UpdateGradeConfiguration(GradeConfiguration gradeConfiguration);
+    Task<GradeConfiguration> GetGradeConfigurationByScore(int score, string schoolId);
     Task RemoveGradeConfiguration(string id);
 }

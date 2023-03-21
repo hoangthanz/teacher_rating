@@ -41,6 +41,17 @@ public class SelfCriticismRepository: ISelfCriticismRepository
         return await _mongoCollection.Find(teacher => teacher.UserId == userId).ToListAsync();
     }
 
+    public async Task<List<SelfCriticism>> GetSelfCriticismsByTeacher(string teacherId, int? month, int? year)
+    {
+        if(month != null && year == null)
+            return await _mongoCollection.Find(x => x.TeacherId == teacherId
+            && x.Month == month && x.Year == year).ToListAsync();
+        else
+        {
+            return await _mongoCollection.Find(x => x.TeacherId == teacherId).ToListAsync();
+        }
+    }
+
     public async Task AddSelfCriticism(SelfCriticism teacher)
     {
         await _mongoCollection.InsertOneAsync(teacher);

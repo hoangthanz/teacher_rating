@@ -1,0 +1,7 @@
+﻿namespace teacher_rating.Models.ViewModels;
+
+public class GetExcelForCriticism
+{
+    public int Month { get; set; }
+    public int Year { get; set; }
+}

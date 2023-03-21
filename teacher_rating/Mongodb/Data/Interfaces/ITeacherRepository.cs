@@ -7,7 +7,7 @@ public interface ITeacherRepository
 {
     Task<Teacher> GetTeacherById(string id);
     Task<Teacher?> GetTeacherByUserId(string userId);
-    Task<IEnumerable<Teacher>> GetAllTeachers();
+    Task<List<Teacher>> GetAllTeachers();
     Task<List<Teacher>> GetByIds(List<string> ids);
 
     Task AddTeacher(Teacher teacher);
