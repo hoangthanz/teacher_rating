@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers;
@@ -34,4 +35,30 @@ public class TeacherController : ControllerBase
         await _teacherRepository.UpdateTeacher(teacher);
         return Ok();
     }
+    
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateTeacher teacher)
+    {
+        var newTeacher = new Teacher()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = teacher.Name,
+            SchoolId = teacher.SchoolId,
+            GroupId = teacher.GroupId,
+            UserId = teacher.UserId,
+            Email = teacher.Email,
+            IsDeleted = false,
+            PhoneNumber = teacher.PhoneNumber,
+        };
+        await _teacherRepository.AddTeacher(newTeacher);
+        return Ok();
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        await _teacherRepository.RemoveTeacher(id);
+        return Ok();
+    }
+   
 }

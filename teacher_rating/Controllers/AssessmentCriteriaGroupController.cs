@@ -180,5 +180,57 @@ namespace teacher_rating.Controllers
             };
             return Ok(result);
         }
+
+        [HttpPost]
+        [Route("update-assessment-criteria")]
+        public async Task<IActionResult> UpdateAssessmentCriteria(AssessmentCriteria assessmentCriteria)
+        {
+            // check group name exist
+            var criteria = await _assessmentCriteriaRepository.GetAssessmentCriterById(assessmentCriteria.Id);
+            if (criteria is null)
+                return Ok(new RespondApi<object>
+                {
+                    Result = ResultRespond.Error,
+                    Code = "200",
+                    Message = "Not found assessment criteria",
+                    Data = assessmentCriteria
+                });
+            
+            await _assessmentCriteriaRepository.UpdateAssessmentCriter(assessmentCriteria);
+            var result = new RespondApi<object>
+            {
+                Result = ResultRespond.Success,
+                Code = "200",
+                Message = "Success",
+                Data = assessmentCriteria
+            };
+            return Ok(result);
+        }
+        
+        [HttpDelete]
+        [Route("delete-assessment-criteria/{id}")]
+        public async Task<IActionResult> DeleteAssessmentCriteria(string id)
+        {
+            // check group name exist
+            var criteria = await _assessmentCriteriaRepository.GetAssessmentCriterById(id);
+            if (criteria is null)
+                return Ok(new RespondApi<object>
+                {
+                    Result = ResultRespond.Error,
+                    Code = "200",
+                    Message = "Not found assessment criteria",
+                    Data = null
+                });
+            
+            await _assessmentCriteriaRepository.RemoveAssessmentCriter(id);
+            var result = new RespondApi<object>
+            {
+                Result = ResultRespond.Success,
+                Code = "200",
+                Message = "Success",
+                Data = null
+            };
+            return Ok(result);
+        }
     }
 }
