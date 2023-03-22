@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AspNetCore.Identity.MongoDbCore.Models;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Const;
@@ -21,13 +22,14 @@ namespace teacher_rating.Controllers
         private readonly IAssessmentCriteriaRepository _assessmentCriteriaRepository;
         private readonly IGradeConfigurationRepository _configurationRepository;
         private readonly ISchoolRepository _schoolRepository;
+        private readonly ITeacherGroupRepository _teacherGroupRepository;
 
         public StartTeacherRatingController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             ISelfCriticismRepository selfCriticismRepository,
             IAssessmentCriteriaGroupRepository assessmentCriteriaGroupRepository,
             IAssessmentCriteriaRepository assessmentCriteriaRepository,
-            IGradeConfigurationRepository configurationRepository, ISchoolRepository schoolRepository)
+            IGradeConfigurationRepository configurationRepository, ISchoolRepository schoolRepository, ITeacherGroupRepository teacherGroupRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -36,6 +38,7 @@ namespace teacher_rating.Controllers
             _assessmentCriteriaRepository = assessmentCriteriaRepository;
             _configurationRepository = configurationRepository;
             _schoolRepository = schoolRepository;
+            _teacherGroupRepository = teacherGroupRepository;
         }
 
         [HttpPost]
@@ -869,7 +872,53 @@ namespace teacher_rating.Controllers
                     await _configurationRepository.AddGradeConfiguration(grade4);
                 }
 
+                // create default teacher group
+                var teacherGroups = await _teacherGroupRepository.GetAllTeacherGroups();
+                var groups = teacherGroups.ToList();
+                if (!groups.Any())
+                {
+                    var defaultTeacherGroups = new List<TeacherGroup>()
+                    {
+                        new TeacherGroup()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Name = "Tổ Toán-GDQP",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
+                        },
+                        new TeacherGroup()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Name = "Tổ Văn-Sử-Địa",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
+                        },
+                        new TeacherGroup()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Name = "Tổ Ngoại ngữ-GDCD",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
+                        },
+                        new TeacherGroup()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Name = "Tổ VL-CN-TD",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
+                        },
+                        new TeacherGroup()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Name = "Tổ Hóa -Sinh",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
+                        },
+                        new TeacherGroup()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            Name = "Tổ Tin-Văn Phòng",
+                            SchoolId = DefaultConfigs.DefaultSchoolId,
+                        },
+                    };
+                    await _teacherGroupRepository.AddTeacherGroups(defaultTeacherGroups);
 
+                }
                 return Ok();
             }
             catch (Exception e)

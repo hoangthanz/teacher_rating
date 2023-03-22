@@ -21,8 +21,8 @@ public class Teacher: BaseEntity
     [BsonElement("assessment_records")]
     public List<AssessmentRecord> AssessmentRecords { get; set; }
     
-    public Guid UserId { get; set; }
-    public ApplicationUser User { get; set; }
+    public Guid? UserId { get; set; }
+    public ApplicationUser? User { get; set; }
     
     [BsonElement("schoolId")] 
     public string SchoolId { get; set; }

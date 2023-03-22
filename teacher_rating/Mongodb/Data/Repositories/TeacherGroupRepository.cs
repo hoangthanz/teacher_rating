@@ -44,6 +44,11 @@ public class TeacherGroupRepository : ITeacherGroupRepository
         await _teacherGroupsCollection.InsertOneAsync(teacher);
     }
 
+    public async Task AddTeacherGroups(List<TeacherGroup> teachers)
+    {
+        await _teacherGroupsCollection.InsertManyAsync(teachers);
+    }
+
     public async Task UpdateTeacherGroup(TeacherGroup teacher)
     {
         await _teacherGroupsCollection.ReplaceOneAsync(t => teacher.Id == t.Id, teacher);
