@@ -58,4 +58,15 @@ public class TeacherGroupRepository : ITeacherGroupRepository
     {
         await _teacherGroupsCollection.DeleteOneAsync(teacher => teacher.Id == id);
     }
+
+    public async Task TeacherGrouping(string schoolId, string groupId, List<string> teacherIds)
+    {
+        var group = await _teacherGroupsCollection.Find(g => g.SchoolId == schoolId && g.Id == groupId)
+            .FirstOrDefaultAsync();
+        if (group is null)
+            return;
+
+        group.TeacherIds = teacherIds;
+        await _teacherGroupsCollection.ReplaceOneAsync(g => group.Id == g.Id, group);
+    }
 }

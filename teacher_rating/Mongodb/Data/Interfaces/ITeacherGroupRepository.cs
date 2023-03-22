@@ -12,4 +12,6 @@ public interface ITeacherGroupRepository
     Task AddTeacherGroups(List<TeacherGroup> teachers);
     Task UpdateTeacherGroup(TeacherGroup teacher);
     Task RemoveTeacherGroup(string id);
+    
+    Task TeacherGrouping(string schoolId, string groupId, List<string> teacherIds);
 }

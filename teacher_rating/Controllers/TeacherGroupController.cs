@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Mongodb.Services;
 
@@ -109,5 +110,7 @@ namespace teacher_rating.Controllers
             var result = _groupTeacherService.AddTeachersToGroup(teacherIds, groupId);
             return Ok(result);
         }
+        
+      
     }
 }
