@@ -28,6 +28,10 @@ public class SelfCriticismService : ISelfCriticismService
         var workSheet = workbook.Worksheets.Add();
         var row = 7;
         var col = 1;
+        workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Value = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}";
+        workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.FontSize = 25;
         var teachers = await _teacherRepository.GetAllTeachers();
         var Titles = new[]
         {
@@ -39,17 +43,38 @@ public class SelfCriticismService : ISelfCriticismService
         foreach (var title in Titles)
         {
             workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row + 1, col++)).Merge().Value = title;
+            workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row + 1, col)).Merge().Style.Font.Bold = true;
+            workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row + 1, col)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row + 1, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         }
-        
-        workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row, col + 1)).Merge().Value = "Điểm cộng";
-        workSheet.Range(workSheet.Cell(row, col + 2), workSheet.Cell(row, col + 3)).Merge().Value = "Điểm trừ";
+
+        workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row, col + 2)).Merge().Value = "Điểm cộng";
+        workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row, col + 2)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row, col + 2)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(row, col + 3), workSheet.Cell(row, col + 5)).Merge().Value = "Điểm trừ";
+        workSheet.Range(workSheet.Cell(row, col + 3), workSheet.Cell(row, col + 5)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(row, col + 3), workSheet.Cell(row, col + 5)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Cell(row + 1, col).Value = "Số điểm";
+        workSheet.Cell(row + 1, col).Style.Font.Bold = true;
+        workSheet.Cell(row + 1, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Cell(row + 1, col + 1).Value = "Lí do";
-        workSheet.Cell(row + 1, col + 2).Value = "Số điểm";
-        workSheet.Cell(row + 1, col + 3).Value = "Lí do";
-        workSheet.Range(workSheet.Cell(row, 1), workSheet.Cell(row + 1, col + 3)).Style.Border.InsideBorder =
+        workSheet.Cell(row + 1, col + 1).Style.Font.Bold = true;
+        workSheet.Cell(row + 1, col + 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Cell(row + 1, col + 2).Value = "Ghi chú";
+        workSheet.Cell(row + 1, col + 2).Style.Font.Bold = true;
+        workSheet.Cell(row + 1, col + 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Cell(row + 1, col + 3).Value = "Số điểm";
+        workSheet.Cell(row + 1, col + 3).Style.Font.Bold = true;
+        workSheet.Cell(row + 1, col + 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Cell(row + 1, col + 4).Value = "Lí do";
+        workSheet.Cell(row + 1, col + 4).Style.Font.Bold = true;
+        workSheet.Cell(row + 1, col + 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Cell(row + 1, col + 5).Value = "Ghi chú";
+        workSheet.Cell(row + 1, col + 5).Style.Font.Bold = true;
+        workSheet.Cell(row + 1, col + 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(row, 1), workSheet.Cell(row + 1, col + 5)).Style.Border.InsideBorder =
             XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(row, 1), workSheet.Cell(row + 1, col + 3)).Style.Border.OutsideBorder =
+        workSheet.Range(workSheet.Cell(row, 1), workSheet.Cell(row + 1, col + 5)).Style.Border.OutsideBorder =
             XLBorderStyleValues.Thin;
 
         row = row + 2;
@@ -84,26 +109,39 @@ public class SelfCriticismService : ISelfCriticismService
             {
                 workSheet.Cell(row++, col).Value = x.Value.ToString();
             });
-
+            workSheet.Cell(max, col).Value = plus.Sum(x => x.Value).ToString();
+            workSheet.Cell(max, col).Style.Font.Bold = true;
             row = currentRow;
             plus.ForEach(x =>
             {
                 workSheet.Cell(row++, col + 1).Value = x.Name;
             });
             row = currentRow;
-            sub.ForEach(x =>
+            plus.ForEach(x =>
             {
-                workSheet.Cell(row++, col + 2).Value = x.Value.ToString();
+                workSheet.Cell(row++, col + 2).Value = x.Description;
             });
             row = currentRow;
             sub.ForEach(x =>
             {
-                workSheet.Cell(row++, col + 3).Value += x.Name;
+                workSheet.Cell(row++, col + 3).Value = x.Value.ToString();
+            });
+            workSheet.Cell(max, col + 3).Value = sub.Sum(x => x.Value).ToString();
+            workSheet.Cell(max, col + 3).Style.Font.Bold = true;
+            row = currentRow;
+            sub.ForEach(x =>
+            {
+                workSheet.Cell(row++, col + 4).Value += x.Name;
+            });
+            row = currentRow;
+            sub.ForEach(x =>
+            {
+                workSheet.Cell(row++, col + 5).Value = x.Description;
             });
 
-            workSheet.Range(workSheet.Cell(max, 1), workSheet.Cell(max, col + 3)).Style.Border.BottomBorder =
+            workSheet.Range(workSheet.Cell(max, 1), workSheet.Cell(max, col + 5)).Style.Border.BottomBorder =
                 XLBorderStyleValues.Thin;
-            for (int colS = 1 ; colS <= col + 3; colS++)
+            for (int colS = 1 ; colS <= col + 5; colS++)
             {
                 workSheet.Range(workSheet.Cell(currentRow, colS), workSheet.Cell(max, colS)).Style.Border.RightBorder =
                     XLBorderStyleValues.Thin;
@@ -114,6 +152,8 @@ public class SelfCriticismService : ISelfCriticismService
         }
         workSheet.Range(workSheet.Cell(9, 1), workSheet.Cell(max, 1)).Style.Border.LeftBorder = XLBorderStyleValues.Thin;
         workSheet.Columns().AdjustToContents();
+        workSheet.Column("A").Width = 10;
+        workSheet.Column("C").Width = 30;
         return workbook;
         //throw new NotImplementedException();
     }

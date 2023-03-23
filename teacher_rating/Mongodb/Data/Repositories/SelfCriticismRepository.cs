@@ -43,7 +43,7 @@ public class SelfCriticismRepository: ISelfCriticismRepository
 
     public async Task<List<SelfCriticism>> GetSelfCriticismsByTeacher(string teacherId, int? month, int? year)
     {
-        if(month != null && year == null)
+        if(month != null && year != null)
             return await _mongoCollection.Find(x => x.TeacherId == teacherId
             && x.Month == month && x.Year == year).ToListAsync();
         else
