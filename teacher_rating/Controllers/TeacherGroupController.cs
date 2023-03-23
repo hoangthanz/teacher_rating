@@ -13,7 +13,7 @@ namespace teacher_rating.Controllers
     public class TeacherGroupController : ControllerBase
     {
         private readonly ITeacherGroupRepository _teacherGroupRepository;
-        private readonly IGroupTeacherService _groupTeacherService; 
+        private readonly IGroupTeacherService _groupTeacherService;
         private readonly string? _userId;
 
         public TeacherGroupController(
@@ -50,14 +50,26 @@ namespace teacher_rating.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddTeacherGroup(TeacherGroup teacherGroup)
+        public async Task<IActionResult> AddTeacherGroup(CreateTeacherGroup create)
         {
-            var teacherGroupExist = await _teacherGroupRepository.GetTeacherGroupByName(teacherGroup.Name);
+            var teacherGroupExist = await _teacherGroupRepository.GetTeacherGroupByName(create.Name);
 
             if (teacherGroupExist is not null)
                 return Ok(new RespondApi<object>()
                     { Data = null, Code = "0", Result = ResultRespond.Error, Message = "Trùng tên tổ" });
 
+            var teacherGroup = new TeacherGroup
+            {
+                Name = create.Name,
+                SchoolId = create.SchoolId,
+                Period1Score = create.Period1Score,
+                Period2Score = create.Period2Score,
+                TeacherIds = create.TeacherIds,
+                TotalMember = create.TotalMember,
+                YearScore = create.YearScore,
+
+                IsDeleted = false
+            };
             teacherGroup.Id = Guid.NewGuid().ToString();
             await _teacherGroupRepository.AddTeacherGroup(teacherGroup);
 
@@ -88,7 +100,7 @@ namespace teacher_rating.Controllers
             return Ok(new RespondApi<TeacherGroup>("Update teacher group successfully.", teacherGroupIn, null));
         }
 
-        [HttpDelete("{id)}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveTeacherGroup(string id)
         {
             var teacherGroup = await _teacherGroupRepository.GetTeacherGroupById(id);
@@ -103,14 +115,12 @@ namespace teacher_rating.Controllers
 
             return Ok(new RespondApi<TeacherGroup>("Remove teacher group successfully.", teacherGroup, null));
         }
-        
+
         [HttpPut("add-teacher-to-group/{groupid}")]
         public async Task<IActionResult> AddTeacherToGroup([FromBody] List<string> teacherIds, string groupId)
         {
             var result = _groupTeacherService.AddTeachersToGroup(teacherIds, groupId);
             return Ok(result);
         }
-        
-      
     }
 }
