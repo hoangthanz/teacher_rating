@@ -116,10 +116,10 @@ namespace teacher_rating.Controllers
             return Ok(new RespondApi<TeacherGroup>("Remove teacher group successfully.", teacherGroup, null));
         }
 
-        [HttpPut("add-teacher-to-group/{groupid}")]
-        public async Task<IActionResult> AddTeacherToGroup([FromBody] List<string> teacherIds, string groupId)
+        [HttpPut("add-teacher-to-group")]
+        public async Task<IActionResult> AddTeacherToGroup([FromBody] AddTeacherToGroupVM request)
         {
-            var result = _groupTeacherService.AddTeachersToGroup(teacherIds, groupId);
+            var result = _groupTeacherService.AddTeachersToGroup(request.teacherIds, request.groupId);
             return Ok(result);
         }
     }
