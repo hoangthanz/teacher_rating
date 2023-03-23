@@ -31,7 +31,7 @@ public class SelfCriticismService : ISelfCriticismService
         var workSheet = workbook.Worksheets.Add();
         var row = 7;
         var col = 1;
-        workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Value = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}";
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Value = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}";
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.Bold = true;
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.FontSize = 25;
