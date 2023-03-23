@@ -9,6 +9,7 @@ public interface ISchoolRepository
     Task<School?> GetById(string id);
     Task<List<School>> GetAll();
     Task<RespondApi<School>> Create(CreateSchool school);
+    Task<RespondApi<School>> Create(School school);
     Task<bool> Update(string id, School school);
     Task<bool> Delete(string id);
 }

@@ -59,7 +59,9 @@ public class SelfCriticismRepository: ISelfCriticismRepository
 
     public async Task UpdateSelfCriticism(SelfCriticism teacher)
     {
+
         await _mongoCollection.ReplaceOneAsync(t => teacher.Id == t.Id, teacher);
+
     }
 
     public async Task RemoveSelfCriticism(string id)

@@ -51,6 +51,12 @@ public class SchoolRepository: ISchoolRepository
         return new RespondApi<School>() { Result = ResultRespond.Success, Data = school, Message = "Thành công"};
     }
 
+    public async Task<RespondApi<School>> Create(School school)
+    {
+        await _collection.InsertOneAsync(school);
+        return new RespondApi<School>() { Result = ResultRespond.Success, Data = school, Message = "Thành công"};
+    }
+
     public async Task<bool> Update(string id, School school)
     {
         var updated = await _collection.ReplaceOneAsync(t => id == t.Id, school);

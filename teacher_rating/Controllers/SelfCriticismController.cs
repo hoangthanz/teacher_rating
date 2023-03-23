@@ -120,6 +120,22 @@ namespace teacher_rating.Controllers
                         Data = selfCriticism
                     });
                 
+                // get self criticism by teacher and month and year
+                var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(selfCriticism.TeacherId, selfCriticism.Month, selfCriticism.Year);
+
+                foreach (var self in selfCriticisms)
+                {
+                    if (self.IsSubmitted == true && self.Id != request.Id)
+                        return Ok(new RespondApi<object>()
+                        {
+                            Result = ResultRespond.Fail,
+                            Code = "200",
+                            Message = "Đã tồn tại tự đánh giá đã được gửi",
+                            Data = selfCriticism
+                        });
+
+                }
+                
                 selfCriticism.IsSubmitted = request.IsSubmitted;
                 await _selfCriticismRepository.UpdateSelfCriticism(selfCriticism);
 
@@ -128,7 +144,7 @@ namespace teacher_rating.Controllers
                     Result = ResultRespond.Success,
                     Code = "200",
                     Message = "Success",
-                    Data = selfCriticism
+                    Data = selfCriticism 
                 };
                 return Ok(result);
             }
