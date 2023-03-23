@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
@@ -33,7 +34,10 @@ public class TeacherController : ControllerBase
     public async Task<IActionResult> Update([FromBody] Teacher teacher)
     {
         await _teacherRepository.UpdateTeacher(teacher);
-        return Ok();
+        return Ok(new RespondApi<object>()
+        {
+            Result = ResultRespond.Success
+        });
     }
     
     [HttpPost]
@@ -51,14 +55,20 @@ public class TeacherController : ControllerBase
             PhoneNumber = teacher.PhoneNumber,
         };
         await _teacherRepository.AddTeacher(newTeacher);
-        return Ok();
+        return Ok(new RespondApi<object>()
+        {
+            Result = ResultRespond.Success
+        });
     }
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         await _teacherRepository.RemoveTeacher(id);
-        return Ok();
+        return Ok(new RespondApi<object>()
+        {
+            Result = ResultRespond.Success
+        });
     }
    
 }
