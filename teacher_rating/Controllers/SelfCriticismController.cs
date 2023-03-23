@@ -177,12 +177,12 @@ namespace teacher_rating.Controllers
             var result = await _selfCriticismRepository.GetByCondition(model);
             return Ok(result);
         }
-        [HttpPost("get-excel/{schoolId}/{year:int}/{month:int}")]
-        public async Task<IActionResult> GetExcel(string schoolId, int year, int month)
+        [HttpPost("get-excel/{schoolId}/{year:int}/{month:int}/{userId}")]
+        public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId)
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                var workbook = await _service.GetSelfCriticismExcelFile(schoolId, month, year);
+                var workbook = await _service.GetSelfCriticismExcelFile(schoolId, month, year, userId);
                 workbook.SaveAs(stream);
                 stream.Seek(0, SeekOrigin.Begin);
                 workbook.Dispose();

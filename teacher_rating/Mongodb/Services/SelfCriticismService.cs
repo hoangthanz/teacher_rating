@@ -8,7 +8,7 @@ namespace teacher_rating.Mongodb.Services;
 
 public interface ISelfCriticismService
 {
-    Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year);
+    Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId);
 }
 
 public class SelfCriticismService : ISelfCriticismService
@@ -16,7 +16,6 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly ISelfCriticismRepository _selfCriticismRepository;
     private readonly ITeacherRepository _teacherRepository;
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
-    private string _userId;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
     ,IHttpContextAccessor httpContext)
@@ -24,12 +23,9 @@ public class SelfCriticismService : ISelfCriticismService
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
         _gradeConfigurationRepository = gradeConfigurationRepository;
-        _userId = httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier) != null
-            ? httpContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            : null;
     }
 
-    public async Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year)
+    public async Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId)
     {
         XLWorkbook workbook = new XLWorkbook();
         var workSheet = workbook.Worksheets.Add();
@@ -40,7 +36,7 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.FontSize = 25;
         var teachers = new List<Teacher>();
-        var teacher = await _teacherRepository.GetTeacherByUserId(_userId);
+        var teacher = await _teacherRepository.GetTeacherByUserId(userId);
         if (teacher != null && !teacher.Name.Contains("admin"))
         {
             teachers.Add(teacher);
