@@ -66,7 +66,7 @@ public class TeacherRepository : ITeacherRepository
 
     public async Task<List<Teacher>> GetTeachersOfSchool(string id)
     {
-         return await _teachersCollection.Find(teacher => teacher.SchoolId.Contains(id))
+        return await _teachersCollection.Find(teacher => teacher.SchoolId == id)
             .ToListAsync();
     }
 

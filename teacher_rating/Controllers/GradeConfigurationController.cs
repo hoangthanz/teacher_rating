@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers
@@ -57,13 +58,22 @@ namespace teacher_rating.Controllers
 
         [HttpPost]
         public async Task<ActionResult<RespondApi<GradeConfiguration>>> CreateGradeConfiguration(
-            GradeConfiguration gradeConfiguration)
+            CreateConfiguration gradeConfiguration
+        )
         {
             try
             {
-                await _gradeConfigurationRepository.AddGradeConfiguration(gradeConfiguration);
+                var config = new GradeConfiguration()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = gradeConfiguration.Name,
+                    MinimumScore = gradeConfiguration.MinimumScore,
+                    MaximumScore = gradeConfiguration.MaximumScore,
+                    SchoolId = gradeConfiguration.SchoolId,
+                };
+                await _gradeConfigurationRepository.AddGradeConfiguration(config);
                 return new RespondApi<GradeConfiguration>(ResultRespond.Success, "00",
-                    $"Create grade configuration with ID: {gradeConfiguration.Id} successfully", gradeConfiguration);
+                    $"Create grade configuration with ID: {config.Id} successfully", config);
             }
             catch (Exception ex)
             {
@@ -73,8 +83,10 @@ namespace teacher_rating.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<RespondApi<GradeConfiguration>>> UpdateGradeConfiguration(string id,
-            GradeConfiguration gradeConfigurationIn)
+        public async Task<ActionResult<RespondApi<GradeConfiguration>>> UpdateGradeConfiguration(
+            string id,
+            GradeConfiguration gradeConfigurationIn
+        )
         {
             try
             {

@@ -25,7 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: myAllowSpecificOrigins,
-        policy  =>
+        policy =>
         {
             policy.AllowAnyOrigin()
                 .AllowAnyHeader()
@@ -56,13 +56,14 @@ var mongoDbSettings = new MongoDbIdentityConfiguration()
     {
         ConnectionString = $"mongodb://demothpttnh.ddns.net:8011",
         DatabaseName = $"TeacherRatingDb"
-    },IdentityOptionsAction = options =>
+    },
+    IdentityOptionsAction = options =>
     {
         options.Password.RequireDigit = false;
         options.Password.RequiredLength = 6;
         options.Password.RequireLowercase = false;
         options.Password.RequireNonAlphanumeric = false;
-        
+
         // lockout 
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
         options.Lockout.MaxFailedAccessAttempts = 5;
