@@ -49,6 +49,7 @@ public class GroupTeacherService : IGroupTeacherService
             await _teacherRepository.UpdateTeacher(teacher);
         }
         teacherGroup.TeacherIds.AddRange(teachers.Select(x => x.Id));
+        await _teacherGroupRepository.UpdateTeacherGroup(teacherGroup);
         
         return new RespondApi<TeacherGroup>()
         {
