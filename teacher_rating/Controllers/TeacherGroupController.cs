@@ -91,7 +91,7 @@ namespace teacher_rating.Controllers
 
             var teacherGroupExist = await _teacherGroupRepository.GetTeacherGroupByName(teacherGroupIn.Name);
 
-            if (teacherGroupExist is not null)
+            if(teacherGroupExist is not null && teacherGroupExist.Id != id)
                 return Ok(new RespondApi<object>()
                     { Data = null, Code = "0", Result = ResultRespond.Error, Message = "Trùng tên tổ" });
 
