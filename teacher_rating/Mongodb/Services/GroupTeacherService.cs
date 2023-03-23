@@ -45,12 +45,14 @@ public class GroupTeacherService : IGroupTeacherService
         {
             teacherGroup.TeacherIds = new List<string>();
         }
+        
         foreach (var teacher in teachers)
         {
             teacher.GroupId = teacherGroup.Id;
             await _teacherRepository.UpdateTeacher(teacher);
         }
         teacherGroup.TeacherIds.AddRange(teachers.Select(x => x.Id));
+        teacherGroup.TeacherIds = teacherGroup.TeacherIds.Distinct().ToList();
         await _teacherGroupRepository.UpdateTeacherGroup(teacherGroup);
         
         return new RespondApi<TeacherGroup>()
