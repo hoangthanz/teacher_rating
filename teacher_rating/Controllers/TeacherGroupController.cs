@@ -119,7 +119,7 @@ namespace teacher_rating.Controllers
         [HttpPut("add-teacher-to-group")]
         public async Task<IActionResult> AddTeacherToGroup([FromBody] AddTeacherToGroupVM request)
         {
-            var result = _groupTeacherService.AddTeachersToGroup(request.teacherIds, request.groupId);
+            var result = await  _groupTeacherService.AddTeachersToGroup(request.teacherIds, request.groupId);
             return Ok(result);
         }
     }
