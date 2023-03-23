@@ -42,7 +42,7 @@ var mongoDbSettings = new MongoDbIdentityConfiguration()
 {
     MongoDbSettings = new MongoDbSettings()
     {
-        ConnectionString = $"mongodb://localhost:8011",
+        ConnectionString = $"mongodb://demothpttnh.ddns.net:8011",
         DatabaseName = $"TeacherRatingDb"
     },IdentityOptionsAction = options =>
     {
@@ -74,6 +74,7 @@ builder.Services.AddScoped<ITeacherGroupRepository, TeacherGroupRepository>();
 builder.Services.AddScoped<IGradeConfigurationRepository, GradeConfigurationRepository>();
 builder.Services.AddScoped<ISchoolRepository, SchoolRepository>();
 builder.Services.AddScoped<IGroupTeacherService, GroupTeacherService>();
+builder.Services.AddScoped<ISelfCriticismService, SelfCriticismService>();
 
 
 builder.Services.AddAuthentication(
