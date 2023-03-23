@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel;
+﻿using System.Security.Claims;
+using ClosedXML.Excel;
+using teacher_rating.Models;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
@@ -14,12 +16,17 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly ISelfCriticismRepository _selfCriticismRepository;
     private readonly ITeacherRepository _teacherRepository;
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
+    private string _userId;
 
-    public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository)
+    public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
+    ,IHttpContextAccessor httpContext)
     {
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
         _gradeConfigurationRepository = gradeConfigurationRepository;
+        _userId = httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier) != null
+            ? httpContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : null;
     }
 
     public async Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year)
@@ -32,7 +39,16 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.Bold = true;
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Range(workSheet.Cell(5, 3), workSheet.Cell(5, 6)).Merge().Style.Font.FontSize = 25;
-        var teachers = await _teacherRepository.GetAllTeachers();
+        var teachers = new List<Teacher>();
+        var teacher = await _teacherRepository.GetTeacherByUserId(_userId);
+        if (teacher != null && !teacher.Name.Contains("admin"))
+        {
+            teachers.Add(teacher);
+        }
+        else
+        {
+            teachers = await _teacherRepository.GetAllTeachers();
+        }
         var Titles = new[]
         {
             "STT",

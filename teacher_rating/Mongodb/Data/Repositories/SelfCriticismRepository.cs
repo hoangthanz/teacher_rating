@@ -45,10 +45,10 @@ public class SelfCriticismRepository: ISelfCriticismRepository
     {
         if(month != null && year != null)
             return await _mongoCollection.Find(x => x.TeacherId == teacherId
-            && x.Month == month && x.Year == year).ToListAsync();
+            && x.Month == month && x.Year == year && x.IsSubmitted == true).ToListAsync();
         else
         {
-            return await _mongoCollection.Find(x => x.TeacherId == teacherId).ToListAsync();
+            return await _mongoCollection.Find(x => x.TeacherId == teacherId && x.IsSubmitted == true).ToListAsync();
         }
     }
 
