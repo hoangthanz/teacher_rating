@@ -71,6 +71,10 @@ namespace teacher_rating.Controllers
                 IsDeleted = false
             };
             teacherGroup.Id = Guid.NewGuid().ToString();
+            if (teacherGroup.TeacherIds != null)
+            {
+                teacherGroup.TeacherIds = teacherGroup.TeacherIds.Distinct().ToList();
+            }
             await _teacherGroupRepository.AddTeacherGroup(teacherGroup);
 
             return Ok(new RespondApi<TeacherGroup>("Create teacher group successfully.", teacherGroup, null));
@@ -89,6 +93,12 @@ namespace teacher_rating.Controllers
 
             teacherGroupIn.Id = id;
 
+            // remove duplicate teacher id
+            if (teacherGroupIn.TeacherIds != null)
+            {
+                teacherGroupIn.TeacherIds = teacherGroupIn.TeacherIds.Distinct().ToList();
+            }
+            
             var teacherGroupExist = await _teacherGroupRepository.GetTeacherGroupByName(teacherGroupIn.Name);
 
             if(teacherGroupExist is not null && teacherGroupExist.Id != id)

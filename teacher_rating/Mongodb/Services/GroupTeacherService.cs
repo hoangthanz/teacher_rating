@@ -22,6 +22,8 @@ public class GroupTeacherService : IGroupTeacherService
 
     public async Task<RespondApi<TeacherGroup>> AddTeachersToGroup(List<string> teacherIds, string groupId)
     {
+        // remove duplicate teacher id
+        teacherIds = teacherIds.Distinct().ToList();
         var teachers = await  _teacherRepository.GetByIds(teacherIds);
         var teacherGroup = await _teacherGroupRepository.GetTeacherGroupById(groupId);
         if (teacherGroup is null)
