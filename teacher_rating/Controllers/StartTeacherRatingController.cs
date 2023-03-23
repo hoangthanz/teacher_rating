@@ -51,8 +51,9 @@ namespace teacher_rating.Controllers
                 var schools = await _schoolRepository.GetAll();
                 if (!schools.Any())
                 {
-                    var school = new CreateSchool
+                    var school = new School()
                     {
+                        Id = DefaultConfigs.DefaultSchoolId,
                         Name = "Trường THPT Trân Nguyên Hân",
                         Address =
                             "Ngõ 185 Tôn Đức Thắng, Phường An Dương, Quận Lê Chân, Hải Phòng",
