@@ -19,7 +19,7 @@ public class Teacher: BaseEntity
     public string Email { get; set; }
     
     [BsonElement("assessment_records")]
-    public List<AssessmentRecord> AssessmentRecords { get; set; }
+    public List<AssessmentRecord>? AssessmentRecords { get; set; }
     
     public Guid? UserId { get; set; }
     public ApplicationUser? User { get; set; }
