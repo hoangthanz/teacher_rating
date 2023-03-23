@@ -5,6 +5,7 @@ using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
+using teacher_rating.Mongodb.Services;
 using teacher_rating.Properties.Dtos;
 
 namespace teacher_rating.Controllers
@@ -17,15 +18,17 @@ namespace teacher_rating.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ISelfCriticismRepository _selfCriticismRepository;
         private readonly ITeacherRepository _teacherRepository;
+        private readonly ISelfCriticismService _service;
 
         public SelfCriticismController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-            ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository)
+            ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, ISelfCriticismService service)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _selfCriticismRepository = selfCriticismRepository;
             _teacherRepository = teacherRepository;
+            _service = service;
         }
 
         [HttpPost]
@@ -173,6 +176,22 @@ namespace teacher_rating.Controllers
         {
             var result = await _selfCriticismRepository.GetByCondition(model);
             return Ok(result);
+        }
+        [HttpPost("get-excel/{schoolId}/{year:int}/{month:int}")]
+        public async Task<IActionResult> GetExcel(string schoolId, int year, int month)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var workbook = await _service.GetSelfCriticismExcelFile(schoolId, month, year);
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                workbook.Dispose();
+                return File(
+                    fileContents: stream.ToArray(),
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: "BaocaoThiDua.xlsx"
+                );
+            }
         }
     }
 }
