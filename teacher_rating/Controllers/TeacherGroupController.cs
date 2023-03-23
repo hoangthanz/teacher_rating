@@ -88,7 +88,7 @@ namespace teacher_rating.Controllers
             return Ok(new RespondApi<TeacherGroup>("Update teacher group successfully.", teacherGroupIn, null));
         }
 
-        [HttpDelete("{id)}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveTeacherGroup(string id)
         {
             var teacherGroup = await _teacherGroupRepository.GetTeacherGroupById(id);
