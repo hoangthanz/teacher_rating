@@ -22,7 +22,7 @@ public class GradeConfigurationRepository : IGradeConfigurationRepository
         return await _gradeConfigurationsCollection.Find(configuration => configuration.Id == id).FirstOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<GradeConfiguration>> GetAllGradeConfigurations()
+    public async Task<List<GradeConfiguration>> GetAllGradeConfigurations()
     {
         return await _gradeConfigurationsCollection.Find(configuration => true).ToListAsync();
     }

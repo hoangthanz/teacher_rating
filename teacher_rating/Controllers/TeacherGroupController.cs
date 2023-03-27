@@ -14,14 +14,16 @@ namespace teacher_rating.Controllers
     {
         private readonly ITeacherGroupRepository _teacherGroupRepository;
         private readonly IGroupTeacherService _groupTeacherService;
+        private readonly ITeacherService _teacherService;
         private readonly string? _userId;
 
         public TeacherGroupController(
             ITeacherGroupRepository teacherGroupRepository,
-            IHttpContextAccessor httpContext, IGroupTeacherService groupTeacherService)
+            IHttpContextAccessor httpContext, IGroupTeacherService groupTeacherService, ITeacherService teacherService)
         {
             _teacherGroupRepository = teacherGroupRepository;
             _groupTeacherService = groupTeacherService;
+            _teacherService = teacherService;
             _userId = httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier) != null
                 ? httpContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 : null;
@@ -131,6 +133,22 @@ namespace teacher_rating.Controllers
         {
             var result = await  _groupTeacherService.AddTeachersToGroup(request.teacherIds, request.groupId);
             return Ok(result);
+        }
+        [HttpPost("get-teacher-by-group-by-grade")]
+        public async Task<IActionResult> GetTeacherByGroupByGrade([FromBody] GetExcelTeacherByGroupByGrade request)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var workbook = await  _teacherService.GetAccessTeacherExcelFile(request.SchoolId, request.Month, request.Year, request.UserId);
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                workbook.Dispose();
+                return File(
+                    fileContents: stream.ToArray(),
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: "BaocaoThiDua.xlsx"
+                );
+            }
         }
     }
 }

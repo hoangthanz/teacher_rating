@@ -76,6 +76,7 @@ builder.Services.AddScoped<IGradeConfigurationRepository, GradeConfigurationRepo
 builder.Services.AddScoped<ISchoolRepository, SchoolRepository>();
 builder.Services.AddScoped<IGroupTeacherService, GroupTeacherService>();
 builder.Services.AddScoped<ISelfCriticismService, SelfCriticismService>();
+builder.Services.AddScoped<ITeacherService, TeacherService>();
 
 
 builder.Services.AddAuthentication(
