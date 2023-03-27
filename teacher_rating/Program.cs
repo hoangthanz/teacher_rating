@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using teacher_rating.MappingConfigure;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Mongodb.Data.Interfaces;
@@ -32,6 +33,7 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.Configure<TeacherRatingDatabaseSettings>(
     builder.Configuration.GetSection("TeacherRatingDatabase"));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 BsonSerializer.RegisterSerializer(new DateTimeSerializer(BsonType.String));

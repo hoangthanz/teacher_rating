@@ -1,6 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using teacher_rating.Common.Models;
+using teacher_rating.Common.Models.Paging;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Models.ViewModels;
@@ -19,16 +21,21 @@ namespace teacher_rating.Controllers
         private readonly ISelfCriticismRepository _selfCriticismRepository;
         private readonly ITeacherRepository _teacherRepository;
         private readonly ISelfCriticismService _service;
+        private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
+        private readonly IMapper _mapper;
 
         public SelfCriticismController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-            ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, ISelfCriticismService service)
+            ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository,
+            ISelfCriticismService service, IGradeConfigurationRepository gradeConfigurationRepository, IMapper mapper)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _selfCriticismRepository = selfCriticismRepository;
             _teacherRepository = teacherRepository;
             _service = service;
+            _gradeConfigurationRepository = gradeConfigurationRepository;
+            _mapper = mapper;
         }
 
         [HttpPost]
@@ -47,7 +54,7 @@ namespace teacher_rating.Controllers
                         Message = "Danh sách tiêu chí đánh giá không được để trống",
                         Data = null
                     });
-                
+
                 selfCriticism.Id = Guid.NewGuid().ToString();
                 selfCriticism.IsSubmitted = false;
                 double total = 0;
@@ -109,8 +116,8 @@ namespace teacher_rating.Controllers
                         Code = "200",
                         Message = "Không tìm thấy tự đánh giá",
                         Data = null
-                    }); 
-                
+                    });
+
                 if (selfCriticism.IsSubmitted == request.IsSubmitted)
                     return Ok(new RespondApi<object>()
                     {
@@ -119,9 +126,10 @@ namespace teacher_rating.Controllers
                         Message = "Trạng thái đã được cập nhật",
                         Data = selfCriticism
                     });
-                
+
                 // get self criticism by teacher and month and year
-                var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(selfCriticism.TeacherId, selfCriticism.Month, selfCriticism.Year);
+                var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(selfCriticism.TeacherId,
+                    selfCriticism.Month, selfCriticism.Year);
 
                 foreach (var self in selfCriticisms)
                 {
@@ -133,9 +141,8 @@ namespace teacher_rating.Controllers
                             Message = "Đã tồn tại tự đánh giá đã được gửi",
                             Data = selfCriticism
                         });
-
                 }
-                
+
                 selfCriticism.IsSubmitted = request.IsSubmitted;
                 await _selfCriticismRepository.UpdateSelfCriticism(selfCriticism);
 
@@ -144,7 +151,7 @@ namespace teacher_rating.Controllers
                     Result = ResultRespond.Success,
                     Code = "200",
                     Message = "Success",
-                    Data = selfCriticism 
+                    Data = selfCriticism
                 };
                 return Ok(result);
             }
@@ -187,12 +194,36 @@ namespace teacher_rating.Controllers
             }
         }
 
-        [HttpGet("get-by-condition")]
-        public async Task<IActionResult> GetByCondition([FromQuery] SearchSelfCriticism model)
+        [HttpPost("get-by-condition")]
+        public async Task<IActionResult> GetByCondition([FromBody] SearchSelfCriticism model)
         {
-            var result = await _selfCriticismRepository.GetByCondition(model);
-            return Ok(result);
+            var dataOfselfCriticisms = await _selfCriticismRepository.GetByCondition(model);
+            var cofigs = await _gradeConfigurationRepository.GetAllGradeConfigurations();
+
+            var selfCriticisms = _mapper.Map<List<SelfCriticismViewModel>>(dataOfselfCriticisms.Data);
+            foreach (var selfCriticism in selfCriticisms)
+            {
+                var config = cofigs.FirstOrDefault(x => x.SchoolId == selfCriticism.SchoolId && x.MinimumScore >= selfCriticism.TotalScore && selfCriticism.TotalScore <= x.MaximumScore);
+                if(config != null)
+                    selfCriticism.CompetitiveRanking = config.Name;
+            }
+            
+            PagingResponse paging = null;
+            if (model.IsPaging)
+            {
+                paging = new PagingResponse()
+                {
+                    CurrentPage = model.PageNumber,
+                    PageSize = model.PageSize,
+                };
+                paging.TotalRecords = (int)selfCriticisms.Count;
+                paging.TotalPages = (int)Math.Ceiling(paging.TotalRecords / (double)paging.PageSize);
+            }
+          
+            var resultOfPaging = new RespondAPIPaging<List<SelfCriticismViewModel>>() {Result = ResultRespond.Success, Data = selfCriticisms, Paging = paging};
+            return Ok(resultOfPaging);
         }
+
         [HttpPost("get-excel/{schoolId}/{year:int}/{month:int}/{userId}")]
         public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId)
         {

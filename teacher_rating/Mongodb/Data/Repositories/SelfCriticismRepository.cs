@@ -83,11 +83,13 @@ public class SelfCriticismRepository: ISelfCriticismRepository
                 query &= codeFilter;
             }
         }
+        
         if(model.GroupId != null)
         {
             var  codeFilter = builder.Where(x => x.Teacher != null && x.Teacher.GroupId == model.GroupId);
             query &= codeFilter;
         }
+        
         if(model.AssessmentCriteria != null)
         {
             var codeFilter = builder.Where(x =>
