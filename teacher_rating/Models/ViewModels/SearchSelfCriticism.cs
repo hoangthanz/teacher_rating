@@ -8,4 +8,5 @@ public class SearchSelfCriticism : PagingParameterModel
     public string? GroupId { get; set; }
     public int? Month { get; set; }
     public int? Year { get; set; }
+    public string SchoolId { get; set; }
 }

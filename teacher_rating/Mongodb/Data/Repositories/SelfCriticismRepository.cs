@@ -72,7 +72,7 @@ public class SelfCriticismRepository: ISelfCriticismRepository
     public async Task<RespondAPIPaging<List<SelfCriticism>>> GetByCondition(SearchSelfCriticism model)
     {
         FilterDefinitionBuilder<SelfCriticism> builder = Builders<SelfCriticism>.Filter;
-        FilterDefinition<SelfCriticism> query = builder.Where(x => x.IsDeleted == false || x.IsDeleted == null);
+        FilterDefinition<SelfCriticism> query = builder.Where(x => x.IsDeleted == false || x.IsDeleted == null && x.SchoolId == model.SchoolId);
         if (model.Year != null)
         {
             var codeFilter = builder.Where(x => x.Year == model.Year);
