@@ -13,4 +13,5 @@ public class TeacherRatingDatabaseSettings
     public string SelfCriticismCollectionName { get; set; } = null!;
     public string GradeConfigurationCollectionName { get; set; } = null!;
     public string SchoolCollectionName { get; set; } = null!;
+    public string FileCollectionName { get; set; } = null!;
 }
