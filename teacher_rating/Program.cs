@@ -90,6 +90,7 @@ builder.Services.AddScoped<IGroupTeacherService, GroupTeacherService>();
 builder.Services.AddScoped<ISelfCriticismService, SelfCriticismService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<IFileDetailsRepository, FileDetailsRepository>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 
 builder.Services.AddAuthentication(
@@ -157,11 +158,7 @@ app.UseRouting();
 app.UseCors(myAllowSpecificOrigins);
 
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions()
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
-    RequestPath = new PathString("/Resources")
-});
+app.UseFileServer(enableDirectoryBrowsing: true);
 
 app.UseAuthorization();
 

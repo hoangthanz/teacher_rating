@@ -9,5 +9,5 @@ public interface IFileService
 
     public Task PostMultiFileAsync(List<FileUploadModel> fileData);
 
-    public Task DownloadFileById(int fileName);
+    public Task DownloadFileById(List<string> ids);
 }

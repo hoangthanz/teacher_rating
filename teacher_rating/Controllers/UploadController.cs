@@ -5,76 +5,88 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+using teacher_rating.Models.ViewModels;
+using teacher_rating.Mongodb.Data.Interfaces;
 
 namespace teacher_rating.Controllers
 {
-   [Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class UploadController : ControllerBase
     {
-        [HttpPost, DisableRequestSizeLimit]
-        public async Task<IActionResult> Upload()
+        private readonly IFileService _uploadService;
+
+
+        public UploadController(IFileService uploadService)
         {
+            _uploadService = uploadService;
+        }
+
+        /// <summary>
+        /// Single File Upload
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        [HttpPost("PostSingleFile")]
+        public async Task<ActionResult> PostSingleFile([FromForm] FileUploadModel fileDetails)
+        {
+            if (fileDetails == null)
+            {
+                return BadRequest();
+            }
+
             try
             {
-                var formCollection = await Request.ReadFormAsync();
-                var file = formCollection.Files.First();
-                var folderName = Path.Combine("Resources", "Images");
-                var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-                if (file.Length > 0)
-                {
-                    var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    var fullPath = Path.Combine(pathToSave, fileName);
-                    var dbPath = Path.Combine(folderName, fileName);
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        file.CopyTo(stream);
-                    }
-                    return Ok(new { dbPath });
-                }
-                else
-                {
-                    return BadRequest();
-                }
+                await _uploadService.PostFileAsync(fileDetails.FileDetails, fileDetails.FileType);
+                return Ok();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, $"Internal server error: {ex}");
+                throw;
             }
         }
 
-        //public async Task<IActionResult> Upload()
-        //{
-        //    try
-        //    {
-        //        var formCollection = await Request.ReadFormAsync();
-        //        var files = formCollection.Files;
-        //        var folderName = Path.Combine("Resources", "Images");
-        //        var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+        /// <summary>
+        /// Multiple File Upload
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        [HttpPost("PostMultipleFile")]
+        public async Task<ActionResult> PostMultipleFile([FromForm] List<FileUploadModel> fileDetails)
+        {
+            if (fileDetails == null)
+            {
+                return BadRequest();
+            }
 
-        //        if (files.Any(f => f.Length == 0))
-        //        {
-        //            return BadRequest();
-        //        }
+            try
+            {
+                await _uploadService.PostMultiFileAsync(fileDetails);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
 
-        //        foreach (var file in files)
-        //        {
-        //            var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-        //            var fullPath = Path.Combine(pathToSave, fileName);
-        //            var dbPath = Path.Combine(folderName, fileName);
-
-        //            using (var stream = new FileStream(fullPath, FileMode.Create))
-        //            {
-        //                file.CopyTo(stream);
-        //            }
-        //        }
-
-        //        return Ok("All the files are successfully uploaded.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
+        /// <summary>
+        /// Download File
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        [HttpPost("DownloadFile")]
+        public async Task<ActionResult> DownloadFile(List<string> ids)
+        {
+            try
+            {
+                await _uploadService.DownloadFileById(ids);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }

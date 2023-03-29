@@ -32,6 +32,13 @@ public class FileDetailsRepository : IFileDetailsRepository
         return new RespondApi<object>() { Data = fileDetails, Message = "File details inserted successfully" };
     }
 
+    public async Task<RespondApi<List<FileDetails>>> Search(List<string> ids)
+    {
+        var filter = Builders<FileDetails>.Filter.In("_id", ids);
+        var result = await _mongoCollection.FindAsync(filter);
+        return new RespondApi<List<FileDetails>>() { Data = result.ToList(), Message = "File details fetched successfully" };
+    }
+
     public async Task<RespondApi<object>> Update(FileDetails fileDetails)
     {
         await _mongoCollection.ReplaceOneAsync(configuration => configuration.Id == fileDetails.Id, fileDetails);
