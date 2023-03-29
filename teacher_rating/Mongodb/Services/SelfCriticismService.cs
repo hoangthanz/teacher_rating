@@ -30,9 +30,11 @@ public class SelfCriticismService : ISelfCriticismService
     public async Task<XLWorkbook> CreateSheet(XLWorkbook workbook, List<Teacher> teachers, int month, int year, string schoolId, TeacherGroup group = null )
     {
         var workSheet = workbook.Worksheets.Add();
+        workSheet.Name = group == null ? "Все" : group.Name;
         var row = 7;
         var col = 1;
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Value = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}";
+        string titleOfSheet = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}" + (group == null ? "" : $" - {group.Name}");
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Value = titleOfSheet;
         workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Font.Bold = true;
         workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Font.FontSize = 25;
@@ -154,12 +156,111 @@ public class SelfCriticismService : ISelfCriticismService
             row = max + 1;
             max = max + 1;
         }
+        
         workSheet.Range(workSheet.Cell(9, 1), workSheet.Cell(max, 1)).Style.Border.LeftBorder = XLBorderStyleValues.Thin;
         workSheet.Columns().AdjustToContents();
         workSheet.Column("A").Width = 10;
         workSheet.Column("C").Width = 30;
+        
         return workbook;
     }
+    
+    public async Task<XLWorkbook> GetAccessTeacherExcelFile(XLWorkbook workbook, string schoolId, int month, int year, string userId)
+    {
+        var workSheet = workbook.Worksheets.Add();
+        int row = 1;
+        int col = 3;
+        var teachers = await _teacherRepository.GetAllTeachers();
+        teachers = teachers.Where(x => x.SchoolId == schoolId && Guid.TryParse(x.GroupId, out Guid parsedGuid)).ToList();
+        var teacherGroups = await _teacherGroupRepository.GetAllTeacherGroups();
+        workSheet.Cell(row, col++).Value = "Tổng cộng";
+        workSheet.Cell(row, col++).Value = teachers.Count().ToString();
+        var grades = await _gradeConfigurationRepository.GetAllGradeConfigurations();
+        var teacherOfGroupOfGrades = await GetTeachersOfGradeOfGroup(grades, teachers, teacherGroups.ToList(), month, year);
+        var allTeacherOfGrade = teacherOfGroupOfGrades.SelectMany(x => x.TeachersOfGrade).ToList();
+        foreach (var grade in grades)
+        {
+            var teachersOfGrade = allTeacherOfGrade.Where(x => x.Grade.Id == grade.Id).SelectMany(e => e.Teachers).ToList();
+            workSheet.Cell(row, col).Value = grade.Name;
+            workSheet.Cell(row + 1, col).Value = teachersOfGrade.Count().ToString();
+            col = col + 1;
+        }
+
+        col = 3;
+        row = row + 5;
+        workSheet.Cell(row, col++).Value = "Tổ";
+        workSheet.Cell(row, col++).Value = "Số lượng";
+        foreach (var grade in grades)
+        {
+            workSheet.Cell(row, col++).Value = grade.Name;
+        }
+
+        col = 3;
+        row = row + 1;
+        foreach (var teacherOfGroupOfGrade in teacherOfGroupOfGrades)
+        {
+            workSheet.Cell(row, col++).Value = teacherOfGroupOfGrade.Group.Name;
+            var count = teacherOfGroupOfGrade.TeachersOfGrade.Sum(x => x.Teachers.Count);
+            workSheet.Cell(row, col++).Value = count.ToString();
+            if (count > 0)
+            {
+                foreach (var teacherOfGrade in teacherOfGroupOfGrade.TeachersOfGrade)
+                {
+                    workSheet.Cell(row, col).Value = teacherOfGrade.Teachers.Count;
+                    workSheet.Cell(row + 1, col++).Value = (teacherOfGrade.Teachers.Count * 100/ count).ToString() + "%" ;
+                }
+            }
+            row = row + 2;
+            col = 3;
+        }
+        workSheet.Cell(row, col++).Value = "Tổng:";
+        workSheet.Cell(row, col++).Value = teachers.Count().ToString();
+        foreach (var grade in grades)
+        {
+            var teachersOfGrade = allTeacherOfGrade.Where(x => x.Grade.Id == grade.Id).SelectMany(e => e.Teachers).ToList();
+            workSheet.Cell(row, col++).Value = teachersOfGrade.Count().ToString();
+        }
+        workSheet.Columns().AdjustToContents();
+        workSheet.Range(workSheet.Cell(6, 3), workSheet.Cell(row, col-1)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(6, 3), workSheet.Cell(row, col-1)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        return workbook;
+    }
+    
+    public async Task<List<TeachersOfGradeOfGroup>> GetTeachersOfGradeOfGroup(List<GradeConfiguration> grades, List<Teacher> teachers, List<TeacherGroup> teacherGroups, int month, int year)
+    {
+        var result = new List<TeachersOfGradeOfGroup>();
+        foreach (var group in teacherGroups)
+        {
+            var teachersOfGroup = teachers.Where(x => x.GroupId == group.Id).ToList();
+            var teachersOfGrades = new List<TeachersOfGrade>();
+            foreach (var grade in grades)
+            {
+                var newTeacherGrade = new TeachersOfGrade
+                {
+                    Grade = grade,
+                    Teachers =new List<Teacher>()
+                };
+                foreach (var teacher in teachersOfGroup)
+                {
+                    var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(teacher.Id, month, year);
+                    var total = (int)selfCriticisms.Sum(x => x.TotalScore);
+                    var gradeOfTeacher = await _gradeConfigurationRepository.GetGradeConfigurationByScore(total, teacher.SchoolId);
+                    if (gradeOfTeacher.Id == grade.Id)
+                    {
+                        newTeacherGrade.Teachers.Add(teacher);
+                    }
+                }
+                teachersOfGrades.Add(newTeacherGrade);
+            }
+            result.Add(new TeachersOfGradeOfGroup()
+            {
+                Group = group,
+                TeachersOfGrade = teachersOfGrades
+            });
+        }
+        return result;
+    }
+    
     public async Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId, List<string> groupIds)
     {
         XLWorkbook workbook = new XLWorkbook();
@@ -188,6 +289,7 @@ public class SelfCriticismService : ISelfCriticismService
             {
                 workbook = await CreateSheet(workbook, teachers.Where(x => x.GroupId == group.Id).ToList(), month, year, schoolId, group);
             }
+            workbook = await GetAccessTeacherExcelFile(workbook, schoolId, month, year, userId);
         }
         return workbook;
         //throw new NotImplementedException();
