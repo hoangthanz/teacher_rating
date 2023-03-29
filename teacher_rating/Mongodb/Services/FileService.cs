@@ -15,7 +15,7 @@ public class FileService : IFileService
         _fileDetailsRepository = fileDetailsRepository;
     }
 
-    public async Task PostFileAsync(IFormFile fileData, FileType fileType)
+    public async Task<RespondApi<FileDetails>> PostFileAsync(IFormFile fileData, FileType fileType)
     {
         try
         {
@@ -32,7 +32,12 @@ public class FileService : IFileService
                 fileDetails.FileData = stream.ToArray();
             }
 
-            var result = _fileDetailsRepository.Insert(fileDetails);
+            var result = await _fileDetailsRepository.Insert(fileDetails);
+            if(result.Result != ResultRespond.Success)
+            {
+                return new RespondApi<FileDetails>() { Message = "Error", Result = ResultRespond.Error };
+            }
+            return new RespondApi<FileDetails>() { Message = "Error", Result = ResultRespond.Success, Data = fileDetails };
         }
         catch (Exception)
         {
@@ -51,6 +56,8 @@ public class FileService : IFileService
                     Id = Guid.NewGuid().ToString(),
                     FileName = file.FileDetails.FileName,
                     FileType = file.FileType,
+                    SchoolId = file.SchoolId,
+                    Description = file.Description
                 };
 
                 using (var stream = new MemoryStream())
@@ -97,7 +104,18 @@ public class FileService : IFileService
             throw;
         }
     }
-
+    public async Task<RespondApi<List<FileDetails>>> GetAll(string schoolId)
+    {
+        try
+        {
+            var res = await _fileDetailsRepository.GetAllBySchool(schoolId);
+            return res;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
     public async Task CopyStream(Stream stream, string downloadPath)
     {
         using (var fileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write))

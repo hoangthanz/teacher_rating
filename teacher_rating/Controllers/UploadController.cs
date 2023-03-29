@@ -88,5 +88,20 @@ namespace teacher_rating.Controllers
                 throw;
             }
         }
+        
+        [HttpGet("get-all")]
+        public async Task<ActionResult> GetAll(string schoolId)
+        {
+            try
+            {
+                var result = await _uploadService.GetAll(schoolId);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+       
     }
 }
