@@ -1,4 +1,5 @@
-﻿using teacher_rating.Common.Models;
+﻿using System.Security.Claims;
+using teacher_rating.Common.Models;
 using teacher_rating.Enums;
 using teacher_rating.Models;
 using teacher_rating.Models.ViewModels;
@@ -9,13 +10,16 @@ namespace teacher_rating.Mongodb.Services;
 public class FileService : IFileService
 {
     private readonly IFileDetailsRepository _fileDetailsRepository;
-
-    public FileService(IFileDetailsRepository fileDetailsRepository)
+    private readonly string? _userId;
+    public FileService(IFileDetailsRepository fileDetailsRepository, IHttpContextAccessor httpContext)
     {
         _fileDetailsRepository = fileDetailsRepository;
+        _userId = httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier) != null
+            ? httpContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : null;
     }
 
-    public async Task<RespondApi<FileDetails>> PostFileAsync(IFormFile fileData, FileType fileType)
+    public async Task<RespondApi<FileDetails>> PostFileAsync(IFormFile fileData, FileType fileType, FileUploadModel details)
     {
         try
         {
@@ -24,6 +28,10 @@ public class FileService : IFileService
                 Id = Guid.NewGuid().ToString(),
                 FileName = fileData.FileName,
                 FileType = fileType,
+                SchoolId = details.SchoolId,
+                Description = details.Description,
+                CreateDate = DateTime.Now,
+                UserId = _userId
             };
 
             using (var stream = new MemoryStream())
@@ -116,6 +124,23 @@ public class FileService : IFileService
             throw;
         }
     }
+
+    public async Task<RespondApi<FileDetails>> GetById(string id)
+    {
+        var res = await _fileDetailsRepository.Search(new List<string>(){id});
+        if (res.Result != ResultRespond.Success)
+        {
+            return new RespondApi<FileDetails>() { Message = "Error", Result = ResultRespond.Error };
+        }
+       
+        var file = res.Data.FirstOrDefault();
+        if (file == null)
+        {
+            return new RespondApi<FileDetails>() { Message = "Error", Result = ResultRespond.Error };
+        }
+        return new RespondApi<FileDetails>() { Message = "Error", Result = ResultRespond.Success, Data = file };
+    }
+
     public async Task CopyStream(Stream stream, string downloadPath)
     {
         using (var fileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write))

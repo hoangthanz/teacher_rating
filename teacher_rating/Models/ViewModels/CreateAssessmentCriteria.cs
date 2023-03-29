@@ -16,5 +16,6 @@ public class CreateAssessmentCriteria
     public string SchoolId { get; set; }
 
     public int Quantity { get; set; } = 1;
+    public bool? AllowUpdateScore { get; set; } = false;
 
 }

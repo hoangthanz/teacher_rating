@@ -168,7 +168,8 @@ namespace teacher_rating.Controllers
                 Value = assessmentCriteria.Value,
                 IsDeduct = assessmentCriteria.IsDeduct,
                 DeductScore = assessmentCriteria.DeductScore,
-                IsDeleted = false
+                IsDeleted = false,
+                AllowUpdateScore = assessmentCriteria.AllowUpdateScore
             };
             await _assessmentCriteriaRepository.AddAssessmentCriter(criteria);
             var result = new RespondApi<object>

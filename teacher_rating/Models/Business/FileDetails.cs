@@ -15,6 +15,6 @@ public class FileDetails
     [BsonElement("schoolId")] public string SchoolId { get; set; }
 
     public string Description { get; set; }
-    public string UserId { get; set; }
+    public string? UserId { get; set; }
     public DateTime CreateDate { get; set; }
 }

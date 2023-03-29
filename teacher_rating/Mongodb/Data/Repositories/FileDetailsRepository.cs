@@ -41,8 +41,13 @@ public class FileDetailsRepository : IFileDetailsRepository
 
     public async Task<RespondApi<List<FileDetails>>> GetAllBySchool(string schoolId)
     {
-        var filter = Builders<FileDetails>.Filter.Eq("SchoolId", schoolId);
-        var result = await _mongoCollection.FindAsync(filter);
+        var files = await _mongoCollection.FindAsync(r => true);
+        var result = files.ToList().Where(r => r.SchoolId == schoolId);
+        // set file data to null
+        foreach (var file in result)
+        {
+            file.FileData = null;
+        }
         return new RespondApi<List<FileDetails>>() { Data = result.ToList(), Message = "File details fetched successfully" };
     }
 

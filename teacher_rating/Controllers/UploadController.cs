@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+using teacher_rating.Common.Models;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
@@ -37,7 +38,7 @@ namespace teacher_rating.Controllers
 
             try
             {
-                await _uploadService.PostFileAsync(fileDetails.FileDetails, fileDetails.FileType);
+                await _uploadService.PostFileAsync(fileDetails.FileDetails, fileDetails.FileType, fileDetails);
                 return Ok();
             }
             catch (Exception)
@@ -89,7 +90,7 @@ namespace teacher_rating.Controllers
             }
         }
         
-        [HttpGet("get-all")]
+        [HttpGet("get-all/{schoolId}")]
         public async Task<ActionResult> GetAll(string schoolId)
         {
             try
@@ -102,6 +103,23 @@ namespace teacher_rating.Controllers
                 throw;
             }
         }
-       
+        [HttpGet]
+        [Route("download/{id}")]
+        public async Task<ActionResult> DownloadFile(string id)
+        {
+            var file = await _uploadService.GetById(id);
+            if (file.Result == ResultRespond.Success)
+            {
+                byte[] fileBytes = file.Data.FileData;
+                string fileName = file.Data.FileName; // Tên tệp tin muốn tải xuống.
+
+                MemoryStream stream = new MemoryStream(fileBytes);
+                return File(stream, "application/octet-stream", fileName);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
     }
 }
