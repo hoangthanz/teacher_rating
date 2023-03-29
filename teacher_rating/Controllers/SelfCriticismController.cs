@@ -225,11 +225,11 @@ namespace teacher_rating.Controllers
         }
 
         [HttpPost("get-excel/{schoolId}/{year:int}/{month:int}/{userId}")]
-        public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId)
+        public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId, [FromBody] List<string> groupIds)
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                var workbook = await _service.GetSelfCriticismExcelFile(schoolId, month, year, userId);
+                var workbook = await _service.GetSelfCriticismExcelFile(schoolId, month, year, userId, groupIds);
                 workbook.SaveAs(stream);
                 stream.Seek(0, SeekOrigin.Begin);
                 workbook.Dispose();

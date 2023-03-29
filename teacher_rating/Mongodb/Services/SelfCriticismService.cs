@@ -8,7 +8,7 @@ namespace teacher_rating.Mongodb.Services;
 
 public interface ISelfCriticismService
 {
-    Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId);
+    Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId, List<string> groupIds);
 }
 
 public class SelfCriticismService : ISelfCriticismService
@@ -16,18 +16,19 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly ISelfCriticismRepository _selfCriticismRepository;
     private readonly ITeacherRepository _teacherRepository;
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
+    private readonly ITeacherGroupRepository _teacherGroupRepository;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
-    ,IHttpContextAccessor httpContext)
+    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository)
     {
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
         _gradeConfigurationRepository = gradeConfigurationRepository;
+        _teacherGroupRepository = teacherGroupRepository;
     }
 
-    public async Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId)
+    public async Task<XLWorkbook> CreateSheet(XLWorkbook workbook, List<Teacher> teachers, int month, int year, string schoolId, TeacherGroup group = null )
     {
-        XLWorkbook workbook = new XLWorkbook();
         var workSheet = workbook.Worksheets.Add();
         var row = 7;
         var col = 1;
@@ -35,16 +36,7 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Font.Bold = true;
         workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Font.FontSize = 25;
-        var teachers = new List<Teacher>();
-        var teacher = await _teacherRepository.GetTeacherByUserId(userId);
-        if (teacher != null && !teacher.Name.Contains("admin"))
-        {
-            teachers.Add(teacher);
-        }
-        else
-        {
-            teachers = await _teacherRepository.GetAllTeachers();
-        }
+        
         var Titles = new[]
         {
             "STT",
@@ -166,6 +158,37 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Columns().AdjustToContents();
         workSheet.Column("A").Width = 10;
         workSheet.Column("C").Width = 30;
+        return workbook;
+    }
+    public async Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId, List<string> groupIds)
+    {
+        XLWorkbook workbook = new XLWorkbook();
+        
+        var teachers = new List<Teacher>();
+        var teacher = await _teacherRepository.GetTeacherByUserId(userId);
+        if (teacher != null && !teacher.Name.Contains("admin"))
+        {
+            teachers.Add(teacher);
+            workbook = await CreateSheet(workbook, teachers, month, year, schoolId);
+        }
+        else 
+        {
+            teachers = await _teacherRepository.GetAllTeachers();
+            var  groups = new List<TeacherGroup>();
+            if (groupIds == null || groupIds.Count <= 0)
+            {
+                groups = await _teacherGroupRepository.GetTeacherGroupsBySchoolId(schoolId);
+            }
+            else
+            {
+                groups = await _teacherGroupRepository.GetTeacherGroupsByIds(groupIds, schoolId);
+            }
+
+            foreach (var group in groups)
+            {
+                workbook = await CreateSheet(workbook, teachers.Where(x => x.GroupId == group.Id).ToList(), month, year, schoolId, group);
+            }
+        }
         return workbook;
         //throw new NotImplementedException();
     }

@@ -39,6 +39,16 @@ public class TeacherGroupRepository : ITeacherGroupRepository
         return await _teacherGroupsCollection.Find(teacher => true).ToListAsync();
     }
 
+    public async Task<List<TeacherGroup>> GetTeacherGroupsByIds(List<string> groupIds, string schoolId)
+    {
+        return await _teacherGroupsCollection.Find(teacher => groupIds.Contains(teacher.Id) && teacher.SchoolId == schoolId).ToListAsync();
+    }
+
+    public async Task<List<TeacherGroup>> GetTeacherGroupsBySchoolId(string schoolId)
+    {
+        return await _teacherGroupsCollection.Find(teacher => teacher.SchoolId == schoolId).ToListAsync();
+    }
+
     public async Task AddTeacherGroup(TeacherGroup teacher)
     {
         await _teacherGroupsCollection.InsertOneAsync(teacher);

@@ -8,6 +8,8 @@ public interface ITeacherGroupRepository
     Task<TeacherGroup> GetTeacherGroupById(string id);
     Task<TeacherGroup?> GetTeacherGroupByName(string name);
     Task<IEnumerable<TeacherGroup>> GetAllTeacherGroups();
+    Task<List<TeacherGroup>> GetTeacherGroupsByIds(List<string> groupIds, string schoolId);
+    Task<List<TeacherGroup>> GetTeacherGroupsBySchoolId(string schoolId);
     Task AddTeacherGroup(TeacherGroup teacher);
     Task AddTeacherGroups(List<TeacherGroup> teachers);
     Task UpdateTeacherGroup(TeacherGroup teacher);
