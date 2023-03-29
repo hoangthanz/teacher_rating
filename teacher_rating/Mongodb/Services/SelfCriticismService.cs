@@ -168,6 +168,7 @@ public class SelfCriticismService : ISelfCriticismService
     public async Task<XLWorkbook> GetAccessTeacherExcelFile(XLWorkbook workbook, string schoolId, int month, int year, string userId)
     {
         var workSheet = workbook.Worksheets.Add();
+        workSheet.Name = "Tổng hợp";
         int row = 1;
         int col = 3;
         var teachers = await _teacherRepository.GetAllTeachers();
