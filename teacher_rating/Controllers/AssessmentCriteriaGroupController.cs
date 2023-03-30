@@ -13,8 +13,10 @@ namespace teacher_rating.Controllers
         private readonly IAssessmentCriteriaGroupRepository _assessmentCriteriaGroupRepository;
         private readonly IAssessmentCriteriaRepository _assessmentCriteriaRepository;
 
-        public AssessmentCriteriaGroupController(IAssessmentCriteriaGroupRepository assessmentCriteriaGroupRepository,
-            IAssessmentCriteriaRepository assessmentCriteriaRepository)
+        public AssessmentCriteriaGroupController(
+            IAssessmentCriteriaGroupRepository assessmentCriteriaGroupRepository,
+            IAssessmentCriteriaRepository assessmentCriteriaRepository
+        )
         {
             _assessmentCriteriaGroupRepository = assessmentCriteriaGroupRepository;
             _assessmentCriteriaRepository = assessmentCriteriaRepository;
@@ -67,11 +69,11 @@ namespace teacher_rating.Controllers
 
         [HttpPost]
         [Route("create-assessment-criteria-group")]
-        public async Task<IActionResult> CreateAssessmentCriteriaGroup(AssessmentCriteriaGroup group)
+        public async Task<IActionResult> CreateAssessmentCriteriaGroup(CreateAssessmentCriteriaGroup group)
         {
             // check group name exist
             var assessmentCriteriaGroup = await _assessmentCriteriaGroupRepository.GetAllAssessmentCriteriaGroups();
-            if (assessmentCriteriaGroup.Any(x => x.Name == group.Name && group.SchoolId == x.SchoolId))
+            if (assessmentCriteriaGroup.Any(x => x.Name == group.Name && group.SchoolId == x.SchoolId && x.IsDeleted == false))
             {
                 return Ok(new RespondApi<object>()
                 {
@@ -82,7 +84,14 @@ namespace teacher_rating.Controllers
                 });
             }
 
-            await _assessmentCriteriaGroupRepository.AddAssessmentCriteriaGroup(group);
+            var newGroup = new AssessmentCriteriaGroup()
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = group.Name,
+                SchoolId = group.SchoolId,
+                Description = group.Description
+            };
+            await _assessmentCriteriaGroupRepository.AddAssessmentCriteriaGroup(newGroup);
             var result = new RespondApi<object>()
             {
                 Result = ResultRespond.Success,
@@ -196,7 +205,7 @@ namespace teacher_rating.Controllers
                     Message = "Not found assessment criteria",
                     Data = assessmentCriteria
                 });
-            
+
             await _assessmentCriteriaRepository.UpdateAssessmentCriter(assessmentCriteria);
             var result = new RespondApi<object>
             {
@@ -207,7 +216,7 @@ namespace teacher_rating.Controllers
             };
             return Ok(result);
         }
-        
+
         [HttpDelete]
         [Route("delete-assessment-criteria/{id}")]
         public async Task<IActionResult> DeleteAssessmentCriteria(string id)
@@ -222,7 +231,7 @@ namespace teacher_rating.Controllers
                     Message = "Not found assessment criteria",
                     Data = null
                 });
-            
+
             await _assessmentCriteriaRepository.RemoveAssessmentCriter(id);
             var result = new RespondApi<object>
             {
