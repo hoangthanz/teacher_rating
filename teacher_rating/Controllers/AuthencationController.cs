@@ -75,7 +75,7 @@ namespace teacher_rating.Controllers
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role));
                 claims.AddRange(roleClaims);
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("2444666668888888"));
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                 var token = new JwtSecurityToken(
                     issuer: "http://localhost:5000",

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,13 +17,18 @@ namespace teacher_rating.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITeacherRepository _teacherRepository;
+        private string _schoolId;
 
         public UserController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-            ITeacherRepository teacherRepository)
+            ITeacherRepository teacherRepository, IHttpContextAccessor httpContext)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _teacherRepository = teacherRepository;
+            _schoolId = httpContext.HttpContext?.User.FindFirst("SchoolId") != null
+                ? httpContext.HttpContext.User.FindFirst("SchoolId")?.Value
+                : null;
+            var claims = httpContext.HttpContext?.User.FindAll("SchoolId").ToList();
         }
 
         [HttpGet]
@@ -85,7 +91,8 @@ namespace teacher_rating.Controllers
                     Id = Guid.NewGuid().ToString(),
                     User = user,
                     UserId = user.Id,
-                    AssessmentRecords = new List<AssessmentRecord>()
+                    AssessmentRecords = new List<AssessmentRecord>(),
+                    SchoolId = _schoolId
                 };
 
                 await _teacherRepository.AddTeacher(teacher);

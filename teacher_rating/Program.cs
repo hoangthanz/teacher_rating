@@ -93,6 +93,7 @@ builder.Services.AddScoped<ISelfCriticismService, SelfCriticismService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<IFileDetailsRepository, FileDetailsRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 
 builder.Services.AddAuthentication(
@@ -105,29 +106,18 @@ builder.Services.AddAuthentication(
     .AddJwtBearer(options =>
     {
         options.SaveToken = true;
+        options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
             ValidIssuer = "http://localhost:5000",
             ValidAudience = "http://localhost:5000",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345")),
+            ClockSkew = TimeSpan.Zero,
         };
         options.Events = new JwtBearerEvents
         {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access"];
-
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/image"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            },
             OnTokenValidated = async context =>
             {
                 var newIdentity = new ClaimsIdentity();
@@ -187,7 +177,7 @@ app.UseCors(myAllowSpecificOrigins);
 
 app.UseStaticFiles();
 app.UseFileServer(enableDirectoryBrowsing: true);
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
