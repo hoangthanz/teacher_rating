@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using AspNetCore.Identity.MongoDbCore.Extensions;
 using AspNetCore.Identity.MongoDbCore.Infrastructure;
@@ -10,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using teacher_rating.Common;
 using teacher_rating.MappingConfigure;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
@@ -112,6 +114,32 @@ builder.Services.AddAuthentication(
             ValidIssuer = "http://localhost:5000",
             ValidAudience = "http://localhost:5000",
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/image"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = async context =>
+            {
+                var newIdentity = new ClaimsIdentity();
+                var accountService = context.HttpContext.RequestServices.GetService<IAccountService>();
+                IEnumerable<Claim> claims = await accountService.GetClaimsByUser(context);
+                foreach (Claim claim in claims)
+                {
+                    newIdentity.AddClaim(claim);
+                }
+                    
+                if (context.Principal != null) context.Principal.AddIdentity(newIdentity);
+            }
         };
     });
 builder.Services.AddSwaggerGen(c =>

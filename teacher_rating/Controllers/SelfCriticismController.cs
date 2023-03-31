@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Mongodb.Services;
 using teacher_rating.Properties.Dtos;
+using Task = DocumentFormat.OpenXml.Office2021.DocumentTasks.Task;
 
 namespace teacher_rating.Controllers
 {
@@ -23,9 +25,10 @@ namespace teacher_rating.Controllers
         private readonly ISelfCriticismService _service;
         private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
         private readonly IMapper _mapper;
+        private string _userId;
 
         public SelfCriticismController(
-            UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
+            UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IHttpContextAccessor httpContext,
             ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository,
             ISelfCriticismService service, IGradeConfigurationRepository gradeConfigurationRepository, IMapper mapper)
         {
@@ -36,6 +39,8 @@ namespace teacher_rating.Controllers
             _service = service;
             _gradeConfigurationRepository = gradeConfigurationRepository;
             _mapper = mapper;
+            _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null ?
+                httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value : null;
         }
 
         [HttpPost]
@@ -101,6 +106,81 @@ namespace teacher_rating.Controllers
                 });
             }
         }
+        public async Task<bool> HasClaim(string Value)
+        {
+            var user = await _userManager.FindByIdAsync(_userId);
+            IEnumerable<string> applicationRoles = await _userManager.GetRolesAsync(user);
+            foreach(string applicationRoleName in applicationRoles)
+            {
+                ApplicationRole applicationRoleData = await _roleManager.FindByNameAsync(applicationRoleName);
+                IEnumerable<Claim> claims = await _roleManager.GetClaimsAsync(applicationRoleData);
+                if (claims != null && claims.Select(e => e.Value).Contains(Value))
+                    return true;
+            }
+            return false;
+        }
+        [HttpPut]
+        [Route("update-self-criticism/{id}")]
+        public async Task<IActionResult> UpdateSelfCriticism([FromBody] UpdateSelfCriticism model, string id)
+        {
+            try
+            {
+                if (model.AssessmentCriterias.Count <= 0)
+                {
+                    return Ok(new RespondApi<object>()
+                    {
+                        Code = "400",
+                        Message = "Danh sách tiêu chí đánh giá không được để trống",
+                        Data = null,
+                    });
+                }
+
+                var self = await _selfCriticismRepository.GetSelfCriticismById(id);
+                if (self == null)
+                {
+                    return Ok(new RespondApi<string>()
+                    {
+                        Code = "400",
+                        Message = "Không tìm thấy bản tự khai",
+                        Data = null,
+                    });
+                }
+                if (!(await HasClaim("Admin")))
+                {
+                    if (self.IsSubmitted == true)
+                    {
+                        return Ok(new RespondApi<string>()
+                        {
+                            Code = "400",
+                            Message = "Bản tự khai đã được gửi đi không thể chỉnh sửa",
+                            Data = null,
+                        });
+                    }
+                }
+
+                self.AssessmentCriterias = model.AssessmentCriterias;
+                self.TotalScore =
+                    self.AssessmentCriterias.Sum(x => (x.IsDeduct) ? x.Value * x.Quantity * -1 : x.Value * x.Quantity);
+                await _selfCriticismRepository.UpdateSelfCriticism(self);
+                return Ok(new RespondApi<string>()
+                {
+                    Code = "200",
+                    Message = "Thành công",
+                    Data = self.Id,
+                });
+            }
+            catch (Exception e)
+            {
+                return Ok(new RespondApi<object>()
+                {
+                    Code = "200",
+                    Message = "Fail",
+                    Data = null,
+                    Error = e
+                });
+            }
+        }
+        
 
         [HttpPost]
         [Route("update-status-self-criticism")]
