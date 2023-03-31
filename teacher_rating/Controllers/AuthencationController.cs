@@ -68,6 +68,7 @@ namespace teacher_rating.Controllers
                     new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new("TeacherId", teacher?.Id ?? string.Empty),
                     new("SchoolId", user?.SchoolId ?? string.Empty),
+                    new("GroupId", teacher?.GroupId ?? string.Empty),
                     
                 };
 

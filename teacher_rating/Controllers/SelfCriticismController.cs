@@ -25,7 +25,7 @@ namespace teacher_rating.Controllers
         private readonly ISelfCriticismService _service;
         private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
         private readonly IMapper _mapper;
-        private string _userId;
+        private string? _userId;
 
         public SelfCriticismController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IHttpContextAccessor httpContext,
@@ -67,11 +67,11 @@ namespace teacher_rating.Controllers
                 {
                     if (criteria.IsDeduct)
                     {
-                        total -= criteria.Value;
+                        total -= criteria.Value * criteria.Quantity;
                     }
                     else
                     {
-                        total += criteria.Value;
+                        total += criteria.Value  * criteria.Quantity;
                     }
                 }
 
@@ -145,18 +145,6 @@ namespace teacher_rating.Controllers
                         Data = null,
                     });
                 }
-                // if (!(await HasClaim("Admin")))
-                // {
-                //     if (self.IsSubmitted == true)
-                //     {
-                //         return Ok(new RespondApi<string>()
-                //         {
-                //             Code = "400",
-                //             Message = "Bản tự khai đã được gửi đi không thể chỉnh sửa",
-                //             Data = null,
-                //         });
-                //     }
-                // }
 
                 self.AssessmentCriterias = model.AssessmentCriterias;
                 self.TotalScore =
