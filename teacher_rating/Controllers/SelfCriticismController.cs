@@ -106,19 +106,19 @@ namespace teacher_rating.Controllers
                 });
             }
         }
-        public async Task<bool> HasClaim(string Value)
-        {
-            var user = await _userManager.FindByIdAsync(_userId);
-            IEnumerable<string> applicationRoles = await _userManager.GetRolesAsync(user);
-            foreach(string applicationRoleName in applicationRoles)
-            {
-                ApplicationRole applicationRoleData = await _roleManager.FindByNameAsync(applicationRoleName);
-                IEnumerable<Claim> claims = await _roleManager.GetClaimsAsync(applicationRoleData);
-                if (claims != null && claims.Select(e => e.Value).Contains(Value))
-                    return true;
-            }
-            return false;
-        }
+        // public async Task<bool> HasClaim(string Value)
+        // {
+        //     var user = await _userManager.FindByIdAsync(_userId);
+        //     IEnumerable<string> applicationRoles = await _userManager.GetRolesAsync(user);
+        //     foreach(string applicationRoleName in applicationRoles)
+        //     {
+        //         ApplicationRole applicationRoleData = await _roleManager.FindByNameAsync(applicationRoleName);
+        //         IEnumerable<Claim> claims = await _roleManager.GetClaimsAsync(applicationRoleData);
+        //         if (claims != null && claims.Select(e => e.Value).Contains(Value))
+        //             return true;
+        //     }
+        //     return false;
+        // }
         [HttpPut]
         [Route("update-self-criticism/{id}")]
         public async Task<IActionResult> UpdateSelfCriticism([FromBody] UpdateSelfCriticism model, string id)
@@ -145,18 +145,18 @@ namespace teacher_rating.Controllers
                         Data = null,
                     });
                 }
-                if (!(await HasClaim("Admin")))
-                {
-                    if (self.IsSubmitted == true)
-                    {
-                        return Ok(new RespondApi<string>()
-                        {
-                            Code = "400",
-                            Message = "Bản tự khai đã được gửi đi không thể chỉnh sửa",
-                            Data = null,
-                        });
-                    }
-                }
+                // if (!(await HasClaim("Admin")))
+                // {
+                //     if (self.IsSubmitted == true)
+                //     {
+                //         return Ok(new RespondApi<string>()
+                //         {
+                //             Code = "400",
+                //             Message = "Bản tự khai đã được gửi đi không thể chỉnh sửa",
+                //             Data = null,
+                //         });
+                //     }
+                // }
 
                 self.AssessmentCriterias = model.AssessmentCriterias;
                 self.TotalScore =
