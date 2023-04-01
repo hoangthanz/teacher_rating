@@ -6,6 +6,7 @@ namespace teacher_rating.Mongodb.Data.Interfaces;
 public interface ITeacherRepository
 {
     Task<Teacher> GetTeacherById(string id);
+    Task<Teacher> GetTeacherByCMND(string cmnd);
     Task<Teacher?> GetTeacherByUserId(string userId);
     Task<List<Teacher>> GetAllTeachers();
     Task<List<Teacher>> GetByIds(List<string> ids);

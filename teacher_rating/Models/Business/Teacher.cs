@@ -14,6 +14,10 @@ public class Teacher: BaseEntity
     
     [BsonElement("phone_number")]
     public string PhoneNumber { get; set; }
+    [BsonElement("gender")]
+    public string? Gender { get; set; }
+    [BsonElement("cmnd")]
+    public string? CMND { get; set; }
     
     [BsonElement("email")]
     public string Email { get; set; }

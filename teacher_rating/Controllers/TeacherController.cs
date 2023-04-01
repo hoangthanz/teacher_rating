@@ -3,6 +3,7 @@ using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
+using teacher_rating.Mongodb.Services;
 
 namespace teacher_rating.Controllers;
 [Route("api/[controller]")]
@@ -10,10 +11,12 @@ namespace teacher_rating.Controllers;
 public class TeacherController : ControllerBase
 {
     private readonly ITeacherRepository _teacherRepository;
+    private readonly ITeacherService _teacherService;
 
-    public TeacherController(ITeacherRepository teacherRepository)
+    public TeacherController(ITeacherRepository teacherRepository, ITeacherService teacherService)
     {
         _teacherRepository = teacherRepository;
+        _teacherService = teacherService;
     }
     
     [HttpGet("get-by-group/{groupId}")]
@@ -70,5 +73,14 @@ public class TeacherController : ControllerBase
             Result = ResultRespond.Success
         });
     }
-   
+   [HttpPost("add-teacher-by-excel")]
+    public async Task<IActionResult> AddTeacherByExcel([FromForm] UploadFile file)
+    {
+        using(var ms = new MemoryStream()) {
+            await file.File.CopyToAsync(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            var respond = await _teacherService.CreateTeachersFromExcel(ms);
+            return Ok(respond);
+        }
+    }
 }

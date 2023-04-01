@@ -1,4 +1,6 @@
 ﻿using ClosedXML.Excel;
+using OfficeOpenXml;
+using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
@@ -10,6 +12,7 @@ public interface ITeacherService
     Task<XLWorkbook> GetAccessTeacherExcelFile(string schoolId, int month, int year, string userId);
     Task<bool> CheckTeacherOfGrade(Teacher teacher, string gradeId, int month, int year, string schoolId);
     Task<List<TeachersOfGradeOfGroup>> GetTeachersOfGradeOfGroup(List<GradeConfiguration> grades, List<Teacher> teachers, List<TeacherGroup> teacherGroups, int month, int year);
+    Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream);
 }
 
 public class TeacherService : ITeacherService
@@ -19,8 +22,9 @@ public class TeacherService : ITeacherService
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
     private readonly ISelfCriticismRepository _selfCriticismRepository;
     private readonly ITeacherGroupRepository _teacherGroupRepository;
+    private string _schoolId;
 
-    public TeacherService(ITeacherRepository teacherRepository,
+    public TeacherService(ITeacherRepository teacherRepository, IHttpContextAccessor httpContext,
         IAssessmentCriteriaRepository assessmentCriteriaRepository,
         IGradeConfigurationRepository gradeConfigurationRepository, ISelfCriticismRepository selfCriticismRepository, ITeacherGroupRepository teacherGroupRepository)
     {
@@ -29,6 +33,8 @@ public class TeacherService : ITeacherService
         _gradeConfigurationRepository = gradeConfigurationRepository;
         _selfCriticismRepository = selfCriticismRepository;
         _teacherGroupRepository = teacherGroupRepository;
+        _schoolId = httpContext.HttpContext?.User.FindFirst("SchoolId") != null ? 
+            httpContext.HttpContext?.User.FindFirst("SchoolId").Value : "";
     }
 
     public async Task<XLWorkbook> GetAccessTeacherExcelFile(string schoolId, int month, int year, string userId)
@@ -140,5 +146,51 @@ public class TeacherService : ITeacherService
         }
 
         return result;
+    }
+
+    public async Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream)
+    {
+        ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+        using (var package = new ExcelPackage(stream))
+        {
+            var workSheet = package.Workbook.Worksheets[0];
+            var totalRows = workSheet.Dimension.Rows;
+            var totalCols = workSheet.Dimension.Columns;
+            var teachers = new List<Teacher>();
+            int row = 1;
+            while (workSheet.Cells[row, 1].Value == null || !workSheet.Cells[row, 1].Value.ToString().Contains("STT"))
+            {
+                row++;
+            }
+
+            row++;
+            while(workSheet.Cells[row, 1].Value != null && !string.IsNullOrEmpty(workSheet.Cells[row, 1].Value.ToString()))
+            {
+                var teacher = new Teacher();
+                teacher.Id = Guid.NewGuid().ToString();
+                teacher.Name = workSheet.Cells[row, 2].Value != null ? workSheet.Cells[row, 2].Value.ToString() : "";
+                teacher.CMND = workSheet.Cells[row, 10].Value != null ? workSheet.Cells[row, 10].Value.ToString() : "";
+                teacher.Gender = workSheet.Cells[row, 4].Value != null ? workSheet.Cells[row, 4].Value.ToString() : "";
+                teacher.PhoneNumber = workSheet.Cells[row, 5].Value != null ? workSheet.Cells[row, 5].Value.ToString() : "";
+                teacher.Email = workSheet.Cells[row, 9].Value != null ? workSheet.Cells[row, 9].Value.ToString() : "";
+                teacher.SchoolId = _schoolId;
+                var oldTeacher = await _teacherRepository.GetTeacherByCMND(teacher.CMND);
+                if (oldTeacher != null)
+                {
+                    teacher.Id = oldTeacher.Id;
+                    await _teacherRepository.UpdateTeacher(teacher);
+                }
+                else
+                {
+                    await _teacherRepository.AddTeacher(teacher);
+                }
+                row++;
+            }
+
+            return new RespondApi<string>()
+            {
+                Result = ResultRespond.Success, Message = "Thành công"
+            };
+        }
     }
 }
