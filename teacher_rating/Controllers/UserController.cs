@@ -17,7 +17,7 @@ namespace teacher_rating.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITeacherRepository _teacherRepository;
-        private string _schoolId;
+        private readonly string _schoolId;
 
         public UserController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             ITeacherRepository teacherRepository, IHttpContextAccessor httpContext)
@@ -28,7 +28,6 @@ namespace teacher_rating.Controllers
             _schoolId = httpContext.HttpContext?.User.FindFirst("SchoolId") != null
                 ? httpContext.HttpContext.User.FindFirst("SchoolId")?.Value
                 : null;
-            var claims = httpContext.HttpContext?.User.FindAll("SchoolId").ToList();
         }
 
         [HttpGet]
@@ -111,10 +110,8 @@ namespace teacher_rating.Controllers
             }
 
             // if register fail return error message
-            
-            
-            
-            
+
+
             return Ok(new RespondApi<object>()
             {
                 Message = $"{result.Errors.First().Description}",
