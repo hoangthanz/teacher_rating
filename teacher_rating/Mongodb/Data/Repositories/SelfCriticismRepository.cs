@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using teacher_rating.Common.Models;
@@ -12,9 +13,10 @@ namespace teacher_rating.Mongodb.Data.Repositories;
 public class SelfCriticismRepository: ISelfCriticismRepository
 {
     private readonly IMongoCollection<SelfCriticism> _mongoCollection;
-    
+    private readonly string? _userId;
+    private readonly string? _roles;
     public SelfCriticismRepository(
-        IOptions<TeacherRatingDatabaseSettings> teacherRatingSettings)
+        IOptions<TeacherRatingDatabaseSettings> teacherRatingSettings, IHttpContextAccessor httpContext)
     {
         var mongoClient = new MongoClient(
             teacherRatingSettings.Value.ConnectionString);
@@ -24,6 +26,10 @@ public class SelfCriticismRepository: ISelfCriticismRepository
 
         _mongoCollection = mongoDatabase.GetCollection<SelfCriticism>(
             teacherRatingSettings.Value.SelfCriticismCollectionName);
+        _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null ?
+            httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value : null;
+        _roles = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role) != null ?
+            httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value : null;
     }
 
     public async Task<SelfCriticism> GetSelfCriticismById(string id)
@@ -97,6 +103,12 @@ public class SelfCriticismRepository: ISelfCriticismRepository
             query &= codeFilter;
         }
 
+        if (!_roles.Contains("Admin"))
+        {
+            if (_userId != null)
+                query &= builder.Where(x => x.UserId == _userId);
+        }
+        
         PagingResponse paging = null;
         List<SelfCriticism> result = null;
         if (model.IsPaging)

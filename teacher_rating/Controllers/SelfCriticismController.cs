@@ -25,7 +25,9 @@ namespace teacher_rating.Controllers
         private readonly ISelfCriticismService _service;
         private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
         private readonly IMapper _mapper;
-        private string? _userId;
+        private readonly string? _userId;
+        private readonly string? _teacherId;
+        private readonly string? _roles;
 
         public SelfCriticismController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IHttpContextAccessor httpContext,
@@ -41,6 +43,10 @@ namespace teacher_rating.Controllers
             _mapper = mapper;
             _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null ?
                 httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value : null;
+            _teacherId = httpContext?.HttpContext?.User?.FindFirst("TeacherId") != null ?
+                httpContext?.HttpContext?.User?.FindFirst("TeacherId")?.Value : null;
+            _roles = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role) != null ?
+                httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value : null;
         }
 
         [HttpPost]
@@ -62,6 +68,9 @@ namespace teacher_rating.Controllers
 
                 selfCriticism.Id = Guid.NewGuid().ToString();
                 selfCriticism.IsSubmitted = false;
+                selfCriticism.UserId = _userId;
+                selfCriticism.CreatedDate = DateTime.Now;
+                selfCriticism.TeacherId = _teacherId;
                 double total = 0;
                 foreach (var criteria in request.AssessmentCriterias)
                 {
@@ -84,7 +93,12 @@ namespace teacher_rating.Controllers
 
                 var user = await _userManager.FindByIdAsync(request.UserId);
                 selfCriticism.User = user;
-
+                if (_roles.Contains("Admin"))
+                {
+                    selfCriticism.IsSubmitted = true;
+                    selfCriticism.IsCreatedByAdmin = true;
+                }
+                
                 await _selfCriticismRepository.AddSelfCriticism(selfCriticism);
 
                 var result = new RespondApi<object>()

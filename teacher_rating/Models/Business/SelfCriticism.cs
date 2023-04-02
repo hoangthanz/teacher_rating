@@ -36,4 +36,6 @@ public class SelfCriticism: BaseEntity
     [BsonElement("schoolId")] 
     public string SchoolId { get; set; }
     
+    public bool? IsCreatedByAdmin { get; set; } = false;
+    
 }

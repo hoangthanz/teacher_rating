@@ -189,9 +189,10 @@ public class TeacherService : ITeacherService
                 }
                 else
                 {
-                    await _teacherRepository.AddTeacher(teacher);
+                    
                     var user = new ApplicationUser()
                     {
+                        Id = Guid.NewGuid(),
                         UserName = teacher.PhoneNumber,
                         Email = teacher.Email,
                         PhoneNumber = teacher.PhoneNumber,
@@ -203,7 +204,10 @@ public class TeacherService : ITeacherService
                         IsDeleted = false,
                         SchoolId = teacher.SchoolId,
                     };
-
+                    teacher.UserId = user.Id;
+                    teacher.User = user;
+                    
+                    await _teacherRepository.AddTeacher(teacher);
                     var result = await _userManager.CreateAsync(user, "123456aA@");
                     if (result.Succeeded)
                     {
