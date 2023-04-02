@@ -273,7 +273,7 @@ namespace teacher_rating.Controllers
             var selfCriticisms = _mapper.Map<List<SelfCriticismViewModel>>(dataOfselfCriticisms.Data);
             foreach (var selfCriticism in selfCriticisms)
             {
-                var config = cofigs.FirstOrDefault(x => x.SchoolId == selfCriticism.SchoolId && x.MinimumScore >= selfCriticism.TotalScore && selfCriticism.TotalScore <= x.MaximumScore);
+                var config = cofigs.FirstOrDefault(x => x.SchoolId == selfCriticism.SchoolId && x.MinimumScore <= selfCriticism.TotalScore && selfCriticism.TotalScore <= x.MaximumScore);
                 if(config != null)
                     selfCriticism.CompetitiveRanking = config.Name;
             }
