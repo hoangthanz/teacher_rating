@@ -1,7 +1,10 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Identity;
 using OfficeOpenXml;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
+using teacher_rating.Models.Identity;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 
@@ -23,16 +26,20 @@ public class TeacherService : ITeacherService
     private readonly ISelfCriticismRepository _selfCriticismRepository;
     private readonly ITeacherGroupRepository _teacherGroupRepository;
     private string _schoolId;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
 
     public TeacherService(ITeacherRepository teacherRepository, IHttpContextAccessor httpContext,
         IAssessmentCriteriaRepository assessmentCriteriaRepository,
-        IGradeConfigurationRepository gradeConfigurationRepository, ISelfCriticismRepository selfCriticismRepository, ITeacherGroupRepository teacherGroupRepository)
+        IGradeConfigurationRepository gradeConfigurationRepository, ISelfCriticismRepository selfCriticismRepository, ITeacherGroupRepository teacherGroupRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
     {
         _teacherRepository = teacherRepository;
         _assessmentCriteriaRepository = assessmentCriteriaRepository;
         _gradeConfigurationRepository = gradeConfigurationRepository;
         _selfCriticismRepository = selfCriticismRepository;
         _teacherGroupRepository = teacherGroupRepository;
+        _roleManager = roleManager;
+        _userManager = userManager;
         _schoolId = httpContext.HttpContext?.User.FindFirst("SchoolId") != null ? 
             httpContext.HttpContext?.User.FindFirst("SchoolId").Value : "";
     }
@@ -183,6 +190,25 @@ public class TeacherService : ITeacherService
                 else
                 {
                     await _teacherRepository.AddTeacher(teacher);
+                    var user = new ApplicationUser()
+                    {
+                        UserName = teacher.PhoneNumber,
+                        Email = teacher.Email,
+                        PhoneNumber = teacher.PhoneNumber,
+                        DisplayName = teacher.Name,
+                        CreatedDate = DateTime.Now,
+                        UpdatedDate = DateTime.Now,
+                        IsActive = true,
+                        ActiveCode = Guid.NewGuid().ToString(),
+                        IsDeleted = false,
+                        SchoolId = teacher.SchoolId,
+                    };
+
+                    var result = await _userManager.CreateAsync(user, "123456aA@");
+                    if (result.Succeeded)
+                    {
+                        await _userManager.AddToRoleAsync(user, "Teacher");
+                    }
                 }
                 row++;
             }
