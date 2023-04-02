@@ -3,4 +3,5 @@
 public class UploadFile
 {
     public IFormFile File { get; set; }
+    public string SchoolId { get; set; }
 }

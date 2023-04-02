@@ -15,7 +15,7 @@ public interface ITeacherService
     Task<XLWorkbook> GetAccessTeacherExcelFile(string schoolId, int month, int year, string userId);
     Task<bool> CheckTeacherOfGrade(Teacher teacher, string gradeId, int month, int year, string schoolId);
     Task<List<TeachersOfGradeOfGroup>> GetTeachersOfGradeOfGroup(List<GradeConfiguration> grades, List<Teacher> teachers, List<TeacherGroup> teacherGroups, int month, int year);
-    Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream);
+    Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream, string schoolId);
 }
 
 public class TeacherService : ITeacherService
@@ -155,7 +155,7 @@ public class TeacherService : ITeacherService
         return result;
     }
 
-    public async Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream)
+    public async Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream, string schoolId)
     {
         ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
         using (var package = new ExcelPackage(stream))
@@ -180,7 +180,7 @@ public class TeacherService : ITeacherService
                 teacher.Gender = workSheet.Cells[row, 4].Value != null ? workSheet.Cells[row, 4].Value.ToString() : "";
                 teacher.PhoneNumber = workSheet.Cells[row, 5].Value != null ? workSheet.Cells[row, 5].Value.ToString() : "";
                 teacher.Email = workSheet.Cells[row, 9].Value != null ? workSheet.Cells[row, 9].Value.ToString() : "";
-                teacher.SchoolId = _schoolId;
+                teacher.SchoolId = schoolId ?? _schoolId;
                 var oldTeacher = await _teacherRepository.GetTeacherByCMND(teacher.CMND);
                 if (oldTeacher != null)
                 {

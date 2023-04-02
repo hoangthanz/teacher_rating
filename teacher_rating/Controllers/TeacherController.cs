@@ -79,7 +79,7 @@ public class TeacherController : ControllerBase
         using(var ms = new MemoryStream()) {
             await file.File.CopyToAsync(ms);
             ms.Seek(0, SeekOrigin.Begin);
-            var respond = await _teacherService.CreateTeachersFromExcel(ms);
+            var respond = await _teacherService.CreateTeachersFromExcel(ms, file.SchoolId);
             return Ok(respond);
         }
     }
