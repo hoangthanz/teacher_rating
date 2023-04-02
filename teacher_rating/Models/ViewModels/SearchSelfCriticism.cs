@@ -9,4 +9,5 @@ public class SearchSelfCriticism : PagingParameterModel
     public int? Month { get; set; }
     public int? Year { get; set; }
     public string SchoolId { get; set; }
+    public bool? IsSubmitted { get; set; }
 }

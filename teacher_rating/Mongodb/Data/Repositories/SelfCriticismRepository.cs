@@ -103,6 +103,12 @@ public class SelfCriticismRepository: ISelfCriticismRepository
             query &= codeFilter;
         }
 
+        if(model.IsSubmitted != null)
+        {
+            var codeFilter = builder.Where(x => x.IsSubmitted == model.IsSubmitted);
+            query &= codeFilter;
+        }
+        
         if (!_roles.Contains("Admin"))
         {
             if (_userId != null)
