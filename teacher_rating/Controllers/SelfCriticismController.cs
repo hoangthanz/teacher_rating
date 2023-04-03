@@ -30,7 +30,8 @@ namespace teacher_rating.Controllers
         private readonly string? _roles;
 
         public SelfCriticismController(
-            UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IHttpContextAccessor httpContext,
+            UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
+            IHttpContextAccessor httpContext,
             ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository,
             ISelfCriticismService service, IGradeConfigurationRepository gradeConfigurationRepository, IMapper mapper)
         {
@@ -41,12 +42,15 @@ namespace teacher_rating.Controllers
             _service = service;
             _gradeConfigurationRepository = gradeConfigurationRepository;
             _mapper = mapper;
-            _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null ?
-                httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value : null;
-            _teacherId = httpContext?.HttpContext?.User?.FindFirst("TeacherId") != null ?
-                httpContext?.HttpContext?.User?.FindFirst("TeacherId")?.Value : null;
-            _roles = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role) != null ?
-                httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value : null;
+            _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null
+                ? httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                : null;
+            _teacherId = httpContext?.HttpContext?.User?.FindFirst("TeacherId") != null
+                ? httpContext?.HttpContext?.User?.FindFirst("TeacherId")?.Value
+                : null;
+            _roles = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role) != null
+                ? httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value
+                : null;
         }
 
         [HttpPost]
@@ -80,7 +84,7 @@ namespace teacher_rating.Controllers
                     }
                     else
                     {
-                        total += criteria.Value  * criteria.Quantity;
+                        total += criteria.Value * criteria.Quantity;
                     }
                 }
 
@@ -98,7 +102,7 @@ namespace teacher_rating.Controllers
                     selfCriticism.IsSubmitted = true;
                     selfCriticism.IsCreatedByAdmin = true;
                 }
-                
+
                 await _selfCriticismRepository.AddSelfCriticism(selfCriticism);
 
                 var result = new RespondApi<object>()
@@ -149,8 +153,9 @@ namespace teacher_rating.Controllers
                 }
 
                 self.AssessmentCriterias = model.AssessmentCriterias;
-                self.TotalScore =
-                    self.AssessmentCriterias.Sum(x => (x.IsDeduct) ? x.Value * x.Quantity * -1 : x.Value * x.Quantity);
+                self.TotalScore = 100 +
+                                  self.AssessmentCriterias.Sum(x =>
+                                      (x.IsDeduct) ? x.Value * x.Quantity * -1 : x.Value * x.Quantity);
                 await _selfCriticismRepository.UpdateSelfCriticism(self);
                 return Ok(new RespondApi<string>()
                 {
@@ -170,7 +175,62 @@ namespace teacher_rating.Controllers
                 });
             }
         }
-        
+
+        [HttpPost]
+        [Route("update-self-criticism-by-admin")]
+        public async Task<IActionResult> UpdateSelfCriticismAdmin([FromBody] UpdateAssessmentCriteriaAdmin model)
+        {
+            try
+            {
+                if (model.AssessmentCriterias.Count <= 0)
+                {
+                    return Ok(new RespondApi<object>()
+                    {
+                        Code = "400",
+                        Message = "Danh sách tiêu chí đánh giá không được để trống",
+                        Data = null,
+                    });
+                }
+
+                var self = await _selfCriticismRepository.GetSelfCriticismById(model.Id);
+                if (self == null)
+                {
+                    return Ok(new RespondApi<string>()
+                    {
+                        Code = "400",
+                        Message = "Không tìm thấy bản tự khai",
+                        Data = null,
+                    });
+                }
+
+                var updated = _mapper.Map<SelfCriticism>(model);
+
+                updated.AssessmentCriterias = model.AssessmentCriterias;
+                updated.TotalScore =
+                    100 + updated.AssessmentCriterias.Sum(x =>
+                        (x.IsDeduct) ? x.Value * x.Quantity * -1 : x.Value * x.Quantity);
+
+
+                await _selfCriticismRepository.UpdateSelfCriticism(updated);
+                return Ok(new RespondApi<string>()
+                {
+                    Code = "200",
+                    Message = "Thành công",
+                    Data = self.Id,
+                });
+            }
+            catch (Exception e)
+            {
+                return Ok(new RespondApi<object>()
+                {
+                    Code = "200",
+                    Message = "Fail",
+                    Data = null,
+                    Error = e
+                });
+            }
+        }
+
 
         [HttpPost]
         [Route("update-status-self-criticism")]
@@ -273,11 +333,13 @@ namespace teacher_rating.Controllers
             var selfCriticisms = _mapper.Map<List<SelfCriticismViewModel>>(dataOfselfCriticisms.Data);
             foreach (var selfCriticism in selfCriticisms)
             {
-                var config = cofigs.FirstOrDefault(x => x.SchoolId == selfCriticism.SchoolId && x.MinimumScore <= selfCriticism.TotalScore && selfCriticism.TotalScore <= x.MaximumScore);
-                if(config != null)
+                var config = cofigs.FirstOrDefault(x =>
+                    x.SchoolId == selfCriticism.SchoolId && x.MinimumScore <= selfCriticism.TotalScore &&
+                    selfCriticism.TotalScore <= x.MaximumScore);
+                if (config != null)
                     selfCriticism.CompetitiveRanking = config.Name;
             }
-            
+
             PagingResponse paging = null;
             if (model.IsPaging)
             {
@@ -289,13 +351,15 @@ namespace teacher_rating.Controllers
                 paging.TotalRecords = (int)selfCriticisms.Count;
                 paging.TotalPages = (int)Math.Ceiling(paging.TotalRecords / (double)paging.PageSize);
             }
-          
-            var resultOfPaging = new RespondAPIPaging<List<SelfCriticismViewModel>>() {Result = ResultRespond.Success, Data = selfCriticisms, Paging = paging};
+
+            var resultOfPaging = new RespondAPIPaging<List<SelfCriticismViewModel>>()
+                { Result = ResultRespond.Success, Data = selfCriticisms, Paging = paging };
             return Ok(resultOfPaging);
         }
 
         [HttpPost("get-excel/{schoolId}/{year:int}/{month:int}/{userId}")]
-        public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId, [FromBody] List<string> groupIds)
+        public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId,
+            [FromBody] List<string> groupIds)
         {
             using (MemoryStream stream = new MemoryStream())
             {
