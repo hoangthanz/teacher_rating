@@ -127,9 +127,9 @@ namespace teacher_rating.Controllers
             }
         }
 
-        [HttpPut]
-        [Route("update-self-criticism/{id}")]
-        public async Task<IActionResult> UpdateSelfCriticism([FromBody] UpdateSelfCriticism model, string id)
+        [HttpPost]
+        [Route("update-self-criticism}")]
+        public async Task<IActionResult> UpdateSelfCriticism([FromBody] SelfCriticism model)
         {
             try
             {
@@ -143,7 +143,7 @@ namespace teacher_rating.Controllers
                     });
                 }
 
-                var self = await _selfCriticismRepository.GetSelfCriticismById(id);
+                var self = await _selfCriticismRepository.GetSelfCriticismById(model.Id);
                 if (self == null)
                 {
                     return Ok(new RespondApi<string>()
