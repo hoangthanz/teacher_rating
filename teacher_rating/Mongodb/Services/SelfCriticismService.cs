@@ -340,8 +340,8 @@ public class SelfCriticismService : ISelfCriticismService
             row++;
         }
 
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(7, 1), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(7, 1), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         
         var grades = await _gradeConfigurationRepository.GetAllGradeConfigurations();
         var teacherOfGroupOfGrades = await GetTeachersOfGradeOfGroup(grades, teachers, new List<TeacherGroup>(){group}, month, year);
@@ -349,7 +349,7 @@ public class SelfCriticismService : ISelfCriticismService
         
         col = col + 2;
         var curentCol = col;
-        row = 5;
+        row = 7;
         workSheet.Cell(row, col++).Value = "Tổ";
         workSheet.Cell(row, col++).Value = "Số lượng";
         foreach (var grade in grades)
@@ -387,13 +387,16 @@ public class SelfCriticismService : ISelfCriticismService
         foreach (var grade in grades)
         {
             var teachersOfGrade = allTeacherOfGrade.Where(x => x.Grade.Id == grade.Id).SelectMany(e => e.Teachers).ToList();
-            workSheet.Cell(row, col++).Value = teachersOfGrade.Count().ToString();
+            workSheet.Cell(row, col).Value = teachersOfGrade.Count().ToString();
+            col++;
         }
-        workSheet.Range(workSheet.Cell(7, curentCol), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(7, curentCol), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(7, curentCol), workSheet.Cell(row, col)).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(7, curentCol), workSheet.Cell(row, col-1)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(7, curentCol), workSheet.Cell(row, col-1)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(7, curentCol), workSheet.Cell(row, col-1)).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         workSheet.Columns().AdjustToContents();
         workSheet.Column("E").Width = 30;
+        workSheet.Column("E").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Column(curentCol).Width = 40;
         workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
         workSheet.RangeUsed().Style.Font.FontSize = 12;
         
@@ -435,19 +438,19 @@ public class SelfCriticismService : ISelfCriticismService
 
     public async Task<XLWorkbook> CreateSheetOfTeacher(XLWorkbook workbook, string schoolId, Teacher teacher, int month, int year, TeacherGroup group)
     {
-        var workSheet = workbook.Worksheets.Add();
+        var workSheet = workbook.Worksheets.Add("Cá nhân");
         var row = 5;
         var col = 1;
         string titleOfSheet = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}" + (group == null ? "" : $" - {group.Name}");
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Value = titleOfSheet;
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Font.Bold = true;
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 10)).Merge().Style.Font.FontSize = 12;
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 5)).Merge().Value = titleOfSheet;
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 5)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 5)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5, 5)).Merge().Style.Font.FontSize = 12;
         string titleOfSheetTeacher = $"Giáo viên: {teacher.Name}";
-        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 10)).Merge().Value = titleOfSheetTeacher;
-        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 10)).Merge().Style.Font.Bold = true;
-        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 10)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 10)).Merge().Style.Font.FontSize = 12;
+        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 5)).Merge().Value = titleOfSheetTeacher;
+        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 5)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 5)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(6, 5)).Merge().Style.Font.FontSize = 12;
         row = 8;
         col = 1;
         workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row+1, col)).Merge().Value = "STT";
@@ -472,9 +475,11 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row+1, col)).Merge().Value = "Xếp loại";
         workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row+1, col)).Merge().Style.Font.Bold = true;
         workSheet.Range(workSheet.Cell(row, col), workSheet.Cell(row+1, col)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        
+
+        row = row + 2;
         var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(teacher.Id, month, year);
         var accesses = selfCriticisms.SelectMany(x => x.AssessmentCriterias).Distinct().ToList();
+        col = 4;
         for(int i = 1 ; i <= accesses.Count; i++)
         {
             col = 1;
@@ -486,15 +491,17 @@ public class SelfCriticismService : ISelfCriticismService
 
         var score = selfCriticisms.Sum(x => x.TotalScore);
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Value = score;
+        workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         col++;
         var grade = await _gradeConfigurationRepository.GetGradeConfigurationByScore((int)score, schoolId);
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Value = grade.Name;
-        
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
         workSheet.Columns().AdjustToContents();
         workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
         workSheet.RangeUsed().Style.Font.FontSize = 12;
+        workSheet.Column("D").Width = 30;
         return workbook;
     }
 
@@ -506,10 +513,19 @@ public class SelfCriticismService : ISelfCriticismService
         var teacher = await _teacherRepository.GetTeacherByUserId(userId);
         if (teacher != null && !teacher.Name.Contains("admin"))
         {
-            teachers.Add(teacher);
             var group = await _teacherGroupRepository.GetTeacherGroupById(teacher.GroupId);
-            await CreateSheetOfTeacher(workbook, schoolId, teacher, month, year, group);
-            workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
+            if (teacher.Id == group.LeaderId)
+            {
+                teachers.Add(teacher);
+                workbook = await CreateSheetOfTeacher(workbook, schoolId, teacher, month, year, group);
+                workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
+            }
+            else
+            {
+                teachers = await _teacherRepository.GetTeachersOfGroup(teacher.GroupId);
+                workbook = await CreateSheetOfTeacher(workbook, schoolId, teacher, month, year, group);
+                workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
+            }
         }
         else 
         {

@@ -21,4 +21,5 @@ public class TeacherGroup : BaseEntity
 
     [BsonElement("totalMember")] 
     public double TotalMember { get; set; } = 0;
+    public string? LeaderId { get; set; }
 }
