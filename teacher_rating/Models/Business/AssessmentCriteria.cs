@@ -24,6 +24,8 @@ public class AssessmentCriteria : BaseEntity
     [BsonElement("quantity")] public int Quantity { get; set; } = 1;
 
     public double TotalScore => Quantity * Value;
+    
+    public DateTime? ActionDate { get; set; }
 
     public bool? AllowUpdateScore { get; set; } = false;
 }

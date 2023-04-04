@@ -12,6 +12,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using teacher_rating.Common;
+using teacher_rating.Common.Const;
 using teacher_rating.MappingConfigure;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
@@ -113,7 +114,7 @@ builder.Services.AddAuthentication(
             ValidateAudience = true,
             ValidIssuer = "http://localhost:5000",
             ValidAudience = "http://localhost:5000",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(DefaultConfigs.KeyJwt)),
             ClockSkew = TimeSpan.Zero,
         };
         options.Events = new JwtBearerEvents

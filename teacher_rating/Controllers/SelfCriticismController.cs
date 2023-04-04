@@ -55,11 +55,12 @@ namespace teacher_rating.Controllers
 
         [HttpPost]
         [Route("create-self-criticism")]
-        public async Task<IActionResult> CreateSelfCriticism([FromBody] SelfCriticism request)
+        public async Task<IActionResult> CreateSelfCriticism([FromBody] CreateSelfCriticism request)
         {
             try
             {
-                var selfCriticism = request;
+                var selfCriticism = _mapper.Map<SelfCriticism>(request);
+                
 
                 if (selfCriticism.AssessmentCriterias.Count == 0)
                     return Ok(new RespondApi<object>()
@@ -89,7 +90,7 @@ namespace teacher_rating.Controllers
                 }
 
                 selfCriticism.TotalScore = 100 + total;
-                if (request.TeacherId != null)
+                if (!string.IsNullOrEmpty(request.TeacherId))
                 {
                     var teacher = await _teacherRepository.GetTeacherById(request.TeacherId);
                     selfCriticism.Teacher = teacher;
@@ -97,7 +98,8 @@ namespace teacher_rating.Controllers
 
                 var user = await _userManager.FindByIdAsync(request.UserId);
                 selfCriticism.User = user;
-                if (_roles.Contains("Admin"))
+                selfCriticism.UserId = user != null ? user.Id.ToString() : request.UserId;
+                if (_roles != null && _roles.Contains("Admin"))
                 {
                     selfCriticism.IsSubmitted = true;
                     selfCriticism.IsCreatedByAdmin = true;

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using teacher_rating.Common.Const;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
@@ -75,7 +76,7 @@ namespace teacher_rating.Controllers
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role));
                 claims.AddRange(roleClaims);
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345"));
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(DefaultConfigs.KeyJwt));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                 var token = new JwtSecurityToken(
                     issuer: "http://localhost:5000",

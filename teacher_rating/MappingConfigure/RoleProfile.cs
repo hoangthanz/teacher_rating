@@ -10,6 +10,7 @@ public class RoleProfile : Profile
     {
         CreateMap<SelfCriticism, SelfCriticismViewModel>().ReverseMap();
         CreateMap<SelfCriticism, UpdateAssessmentCriteriaAdmin>().ReverseMap();
+        CreateMap<SelfCriticism, CreateSelfCriticism>().ReverseMap();
     }
 }
 
