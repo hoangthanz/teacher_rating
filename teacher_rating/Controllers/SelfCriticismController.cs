@@ -128,7 +128,7 @@ namespace teacher_rating.Controllers
         }
 
         [HttpPost]
-        [Route("update-self-criticism}")]
+        [Route("update-self-criticism")]
         public async Task<IActionResult> UpdateSelfCriticism([FromBody] SelfCriticism model)
         {
             try
