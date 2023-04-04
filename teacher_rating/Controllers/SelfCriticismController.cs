@@ -365,7 +365,7 @@ namespace teacher_rating.Controllers
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                var workbook = await _service.GetSelfCriticismExcelFile(schoolId, month, year, userId, groupIds);
+                var workbook = await _service.GetSelfCriticismExcelFileNew(schoolId, month, year, userId, groupIds);
                 workbook.SaveAs(stream);
                 stream.Seek(0, SeekOrigin.Begin);
                 workbook.Dispose();
