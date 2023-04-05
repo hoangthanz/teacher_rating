@@ -102,7 +102,7 @@ public class SelfCriticismService : ISelfCriticismService
             var grade = await _gradeConfigurationRepository.GetGradeConfigurationByScore(total, schoolId);
             if (grade != null)
             {
-                workSheet.Cell(row, col++).Value = grade.Name;
+                workSheet.Cell(row, col++).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
             }
             else
             {
@@ -185,7 +185,7 @@ public class SelfCriticismService : ISelfCriticismService
         foreach (var grade in grades)
         {
             var teachersOfGrade = allTeacherOfGrade.Where(x => x.Grade.Id == grade.Id).SelectMany(e => e.Teachers).ToList();
-            workSheet.Cell(row, col).Value = grade.Name;
+            workSheet.Cell(row, col).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
             workSheet.Cell(row + 1, col).Value = teachersOfGrade.Count().ToString();
             col = col + 1;
         }
@@ -196,7 +196,7 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Cell(row, col++).Value = "Số lượng";
         foreach (var grade in grades)
         {
-            workSheet.Cell(row, col).Value = grade.Name;
+            workSheet.Cell(row, col).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
             workSheet.Cell(row, col).Style.Font.Bold = true;
             col++;
         }
@@ -336,7 +336,7 @@ public class SelfCriticismService : ISelfCriticismService
             workSheet.Cell(row,col++).Value= sub.ToString();
             workSheet.Cell(row,col++).Value= (plus - sub).ToString();
             var grade = await  _gradeConfigurationRepository.GetGradeConfigurationByScore((int)(plus - sub), schoolId);
-            workSheet.Cell(row,col++).Value= grade.Name;
+            workSheet.Cell(row,col++).Value= grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
             row++;
         }
 
@@ -354,7 +354,7 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Cell(row, col++).Value = "Số lượng";
         foreach (var grade in grades)
         {
-            workSheet.Cell(row, col).Value = grade.Name;
+            workSheet.Cell(row, col).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
             workSheet.Cell(row, col).Style.Font.Bold = true;
             col++;
         }
@@ -494,13 +494,14 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         col++;
         var grade = await _gradeConfigurationRepository.GetGradeConfigurationByScore((int)score, schoolId);
-        workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Value = grade.Name;
+        workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col-1)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col-1)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
         workSheet.Columns().AdjustToContents();
         workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
         workSheet.RangeUsed().Style.Font.FontSize = 12;
+        workSheet.Column("D").Width = 20;
         workSheet.Column("D").Width = 30;
         return workbook;
     }
