@@ -20,14 +20,16 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly ITeacherRepository _teacherRepository;
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
     private readonly ITeacherGroupRepository _teacherGroupRepository;
+    private readonly ISchoolRepository _schoolRepository;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
-    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository)
+    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository)
     {
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
         _gradeConfigurationRepository = gradeConfigurationRepository;
         _teacherGroupRepository = teacherGroupRepository;
+        _schoolRepository = schoolRepository;
     }
 
     public async Task<XLWorkbook> CreateSheet(XLWorkbook workbook, List<Teacher> teachers, int month, int year, string schoolId, TeacherGroup group = null )
@@ -174,6 +176,9 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Name = "Tổng hợp";
         int row = 1;
         int col = 3;
+        
+        workSheet.Column("C").Width = 40;
+        
         var teachers = await _teacherRepository.GetAllTeachers();
         teachers = teachers.Where(x => x.SchoolId == schoolId && Guid.TryParse(x.GroupId, out Guid parsedGuid)).ToList();
         var teacherGroups = await _teacherGroupRepository.GetAllTeacherGroups();
@@ -278,6 +283,10 @@ public class SelfCriticismService : ISelfCriticismService
     {
         var workSheet = workbook.Worksheets.Add();
         workSheet.Name = group == null ? "Все" : group.Name;
+        var school = await _schoolRepository.GetById(schoolId);
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Value = school != null ? school.Name.ToUpper() : "TRƯỜNG THPT TRẦN NGUYÊN HÃN";
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Font.Underline = XLFontUnderlineValues.Single;
         var row = 5;
         var col = 1;
         string titleOfSheet = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}" + (group == null ? "" : $" - {group.Name}");
@@ -439,6 +448,10 @@ public class SelfCriticismService : ISelfCriticismService
     public async Task<XLWorkbook> CreateSheetOfTeacher(XLWorkbook workbook, string schoolId, Teacher teacher, int month, int year, TeacherGroup group)
     {
         var workSheet = workbook.Worksheets.Add("Cá nhân");
+        var school = await _schoolRepository.GetById(schoolId);
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 3)).Merge().Value = school != null ? school.Name.ToUpper() : "TRƯỜNG THPT TRẦN NGUYÊN HÃN";
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 3)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 3)).Merge().Style.Font.Underline = XLFontUnderlineValues.Single;
         var row = 5;
         var col = 1;
         string titleOfSheet = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year}" + (group == null ? "" : $" - {group.Name}");
@@ -485,24 +498,26 @@ public class SelfCriticismService : ISelfCriticismService
             col = 1;
             workSheet.Cell(row, col++).Value = i.ToString();
             workSheet.Cell(row, col++).Value = accesses[i-1].Name;
-            workSheet.Cell(row, col++).Value = accesses[i-1].Value;
+            workSheet.Cell(row, col++).Value = accesses[i-1].IsDeduct ? (-1) * accesses[i-1].Value : accesses[i-1].Value ;
             row++;
         }
 
         var score = selfCriticisms.Sum(x => x.TotalScore);
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Value = score;
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+        workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         col++;
         var grade = await _gradeConfigurationRepository.GetGradeConfigurationByScore((int)score, schoolId);
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
         workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col-1)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col-1)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(row - accesses.Count, col), workSheet.Cell(row, col)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(8, 1), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
         workSheet.Columns().AdjustToContents();
         workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
         workSheet.RangeUsed().Style.Font.FontSize = 12;
         workSheet.Column("D").Width = 20;
-        workSheet.Column("D").Width = 30;
+        workSheet.Column("E").Width = 30;
         return workbook;
     }
 
@@ -525,7 +540,7 @@ public class SelfCriticismService : ISelfCriticismService
             {
                 teachers = await _teacherRepository.GetTeachersOfGroup(teacher.GroupId);
                 workbook = await CreateSheetOfTeacher(workbook, schoolId, teacher, month, year, group);
-                workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
+                //workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
             }
         }
         else 
