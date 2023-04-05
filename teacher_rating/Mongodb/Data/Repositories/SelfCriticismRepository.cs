@@ -75,7 +75,7 @@ public class SelfCriticismRepository: ISelfCriticismRepository
         await _mongoCollection.DeleteOneAsync(t => t.Id == id);
     }
 
-    public async Task<RespondAPIPaging<List<SelfCriticism>>> GetByCondition(SearchSelfCriticism model)
+    public async Task<RespondAPIPaging<List<SelfCriticism>>> GetByCondition(SearchSelfCriticism model, bool IsLeader)
     {
         FilterDefinitionBuilder<SelfCriticism> builder = Builders<SelfCriticism>.Filter;
         FilterDefinition<SelfCriticism> query = builder.Where(x => x.IsDeleted == false || x.IsDeleted == null && x.SchoolId == model.SchoolId);
@@ -108,11 +108,14 @@ public class SelfCriticismRepository: ISelfCriticismRepository
             var codeFilter = builder.Where(x => x.IsSubmitted == model.IsSubmitted);
             query &= codeFilter;
         }
-        
+
         if (!_roles.Contains("Admin"))
         {
             if (_userId != null)
-                query &= builder.Where(x => x.UserId == _userId);
+            {
+                if (!IsLeader)
+                    query &= builder.Where(x => x.UserId == _userId);
+            }
         }
         
         PagingResponse paging = null;

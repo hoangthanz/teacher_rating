@@ -13,5 +13,5 @@ public interface ISelfCriticismRepository
     Task AddSelfCriticism(SelfCriticism teacher);
     Task UpdateSelfCriticism(SelfCriticism teacher);
     Task RemoveSelfCriticism(string id);
-    Task<RespondAPIPaging<List<SelfCriticism>>> GetByCondition(SearchSelfCriticism model);
+    Task<RespondAPIPaging<List<SelfCriticism>>> GetByCondition(SearchSelfCriticism model, bool IsLeader);
 }

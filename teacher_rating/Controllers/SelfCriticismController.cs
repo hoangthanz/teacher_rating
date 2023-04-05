@@ -22,6 +22,7 @@ namespace teacher_rating.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ISelfCriticismRepository _selfCriticismRepository;
         private readonly ITeacherRepository _teacherRepository;
+        private readonly ITeacherGroupRepository _teacherGroupRepository;
         private readonly ISelfCriticismService _service;
         private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
         private readonly IMapper _mapper;
@@ -33,7 +34,7 @@ namespace teacher_rating.Controllers
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             IHttpContextAccessor httpContext,
             ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository,
-            ISelfCriticismService service, IGradeConfigurationRepository gradeConfigurationRepository, IMapper mapper)
+            ISelfCriticismService service, IGradeConfigurationRepository gradeConfigurationRepository, IMapper mapper, ITeacherGroupRepository teacherGroupRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -42,6 +43,7 @@ namespace teacher_rating.Controllers
             _service = service;
             _gradeConfigurationRepository = gradeConfigurationRepository;
             _mapper = mapper;
+            _teacherGroupRepository = teacherGroupRepository;
             _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null
                 ? httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 : null;
@@ -329,7 +331,21 @@ namespace teacher_rating.Controllers
         [HttpPost("get-by-condition")]
         public async Task<IActionResult> GetByCondition([FromBody] SearchSelfCriticism model)
         {
-            var dataOfselfCriticisms = await _selfCriticismRepository.GetByCondition(model);
+            bool isLeader = false;
+            if (_userId != null)
+            {
+                var teacher = await _teacherRepository.GetTeacherByUserId(_userId);
+                if (teacher != null)
+                {
+                    var teacherGroup = await _teacherGroupRepository.GetTeacherGroupById(teacher.GroupId);
+                    if (teacher.Id == teacherGroup.LeaderId)
+                    {
+                        isLeader = true;
+                        model.GroupId = teacher.GroupId;
+                    }
+                }
+            }
+            var dataOfselfCriticisms = await _selfCriticismRepository.GetByCondition(model, isLeader);
             var cofigs = await _gradeConfigurationRepository.GetAllGradeConfigurations();
 
             var selfCriticisms = _mapper.Map<List<SelfCriticismViewModel>>(dataOfselfCriticisms.Data);
