@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver.Linq;
 using teacher_rating.Models;
+using teacher_rating.Models.Identity;
 using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 using Task = DocumentFormat.OpenXml.Office2021.DocumentTasks.Task;
@@ -21,6 +23,8 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
     private readonly ITeacherGroupRepository _teacherGroupRepository;
     private readonly ISchoolRepository _schoolRepository;
+    private UserManager<ApplicationUser> userManager;
+    private RoleManager<ApplicationRole> roleManager;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
     ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository)
@@ -30,6 +34,19 @@ public class SelfCriticismService : ISelfCriticismService
         _gradeConfigurationRepository = gradeConfigurationRepository;
         _teacherGroupRepository = teacherGroupRepository;
         _schoolRepository = schoolRepository;
+    }
+    public async Task<bool> HasClaim(string userId, string Value)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        IEnumerable<string> applicationRoles = await userManager.GetRolesAsync(user);
+        foreach(string applicationRoleName in applicationRoles)
+        {
+            ApplicationRole applicationRoleData = await roleManager.FindByNameAsync(applicationRoleName);
+            IEnumerable<Claim> claims = await roleManager.GetClaimsAsync(applicationRoleData);
+            if (claims != null && claims.Select(e => e.Value).Contains(Value))
+                return true;
+        }
+        return false;
     }
 
     public async Task<XLWorkbook> CreateSheet(XLWorkbook workbook, List<Teacher> teachers, int month, int year, string schoolId, TeacherGroup group = null )
@@ -527,7 +544,7 @@ public class SelfCriticismService : ISelfCriticismService
         
         var teachers = new List<Teacher>();
         var teacher = await _teacherRepository.GetTeacherByUserId(userId);
-        if (teacher != null && !teacher.Name.Contains("admin"))
+        if (teacher != null && !(await HasClaim(userId, "Admin")))
         {
             var group = await _teacherGroupRepository.GetTeacherGroupById(teacher.GroupId);
             if (teacher.Id == group.LeaderId)
