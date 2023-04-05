@@ -27,13 +27,15 @@ public class SelfCriticismService : ISelfCriticismService
     private RoleManager<ApplicationRole> roleManager;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
-    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository)
+    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
     {
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
         _gradeConfigurationRepository = gradeConfigurationRepository;
         _teacherGroupRepository = teacherGroupRepository;
         _schoolRepository = schoolRepository;
+        this.roleManager = roleManager;
+        this.userManager = userManager;
     }
     public async Task<bool> HasClaim(string userId, string Value)
     {
