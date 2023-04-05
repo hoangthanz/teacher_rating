@@ -360,10 +360,11 @@ public class SelfCriticismService : ISelfCriticismService
             var acesses = selfCriticism.SelectMany(x => x.AssessmentCriterias).Distinct().ToList();
             var plus = acesses.Where(x => !x.IsDeduct).Sum(e => e.Value);
             var sub = acesses.Where(x => x.IsDeduct).Sum(e => e.Value);
+            var score = selfCriticism.Sum(x => x.TotalScore);
             workSheet.Cell(row,col++).Value= plus.ToString();
             workSheet.Cell(row,col++).Value= sub.ToString();
-            workSheet.Cell(row,col++).Value= (plus - sub).ToString();
-            var grade = await  _gradeConfigurationRepository.GetGradeConfigurationByScore((int)(plus - sub), schoolId);
+            workSheet.Cell(row,col++).Value= score.ToString();
+            var grade = await  _gradeConfigurationRepository.GetGradeConfigurationByScore((int)score, schoolId);
             workSheet.Cell(row,col++).Value= grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
             row++;
         }
