@@ -551,13 +551,13 @@ public class SelfCriticismService : ISelfCriticismService
             var group = await _teacherGroupRepository.GetTeacherGroupById(teacher.GroupId);
             if (teacher.Id == group.LeaderId)
             {
-                teachers.Add(teacher);
+                teachers = await _teacherRepository.GetTeachersOfGroup(teacher.GroupId);
                 workbook = await CreateSheetOfTeacher(workbook, schoolId, teacher, month, year, group);
                 workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
             }
             else
             {
-                teachers = await _teacherRepository.GetTeachersOfGroup(teacher.GroupId);
+                teachers.Add(teacher);
                 workbook = await CreateSheetOfTeacher(workbook, schoolId, teacher, month, year, group);
                 //workbook = await CreateSheetNew(workbook, teachers, month, year, schoolId, group);
             }
