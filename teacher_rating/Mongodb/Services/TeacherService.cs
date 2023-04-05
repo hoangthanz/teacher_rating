@@ -16,6 +16,9 @@ public interface ITeacherService
     Task<bool> CheckTeacherOfGrade(Teacher teacher, string gradeId, int month, int year, string schoolId);
     Task<List<TeachersOfGradeOfGroup>> GetTeachersOfGradeOfGroup(List<GradeConfiguration> grades, List<Teacher> teachers, List<TeacherGroup> teacherGroups, int month, int year);
     Task<RespondApi<string>> CreateTeachersFromExcel(Stream stream, string schoolId);
+    Task<RespondApi<List<Teacher>>> GetTeacherByGroup(string groupId);
+    Task<RespondApi<bool>> UpdateTeachers(List<Teacher> teachers);
+    
 }
 
 public class TeacherService : ITeacherService
@@ -222,5 +225,27 @@ public class TeacherService : ITeacherService
                 Result = ResultRespond.Success, Message = "Thành công"
             };
         }
+    }
+
+    public async Task<RespondApi<List<Teacher>>> GetTeacherByGroup(string groupId)
+    {
+        var teachers = await _teacherRepository.GetTeachersOfGroup(groupId);
+        return new RespondApi<List<Teacher>>()
+        {
+            Result = ResultRespond.Success, Message = "Thành công", Data = teachers
+        };
+    }
+
+    public async Task<RespondApi<bool>> UpdateTeachers(List<Teacher> teachers)
+    {
+        foreach (var teacher in teachers)
+        {
+            await _teacherRepository.UpdateTeacher(teacher);
+        }
+
+        return new RespondApi<bool>()
+        {
+            Result = ResultRespond.Success, Message = "Thành công", Data = true
+        };
     }
 }

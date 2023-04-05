@@ -16,4 +16,5 @@ public class CreateTeacherGroup
 
 
     public double TotalMember { get; set; } = 0;
+    public string? LeaderId { get; set; }
 }

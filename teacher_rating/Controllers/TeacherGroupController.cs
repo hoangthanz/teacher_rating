@@ -69,7 +69,7 @@ namespace teacher_rating.Controllers
                 TeacherIds = create.TeacherIds,
                 TotalMember = create.TotalMember,
                 YearScore = create.YearScore,
-
+                LeaderId = create.LeaderId,
                 IsDeleted = false
             };
             teacherGroup.Id = Guid.NewGuid().ToString();
@@ -123,6 +123,18 @@ namespace teacher_rating.Controllers
                     "Not found teacher group by id.", null));
             }
 
+            var repondOfteachers = await _teacherService.GetTeacherByGroup(teacherGroup.Id);
+            if (repondOfteachers.Result == ResultRespond.Success)
+            {
+                // set teacher group id to null
+                var teachers = repondOfteachers.Data;
+                foreach (var teacher in teachers)
+                {
+                    teacher.GroupId = null;
+                }
+                
+                await _teacherService.UpdateTeachers(teachers);
+            }
             await _teacherGroupRepository.RemoveTeacherGroup(teacherGroup.Id);
 
             return Ok(new RespondApi<TeacherGroup>("Remove teacher group successfully.", teacherGroup, null));
