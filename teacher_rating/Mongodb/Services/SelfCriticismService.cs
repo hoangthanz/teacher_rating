@@ -14,6 +14,7 @@ public interface ISelfCriticismService
 {
     Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId, List<string> groupIds);
     Task<XLWorkbook> GetSelfCriticismExcelFileNew(string schoolId, int month, int year, string userId, List<string> groupIds);
+    Task<XLWorkbook> GetSampleExcelFile(int year);
 }
 
 public class SelfCriticismService : ISelfCriticismService
@@ -585,6 +586,42 @@ public class SelfCriticismService : ISelfCriticismService
             }
             workbook = await GetAccessTeacherExcelFile(workbook, schoolId, month, year, userId);
         }
+        return workbook;
+    }
+
+    public async Task<XLWorkbook> GetSampleExcelFile(int year)
+    {
+        XLWorkbook workbook = new XLWorkbook();
+        var workSheet = workbook.Worksheets.Add("Mẫu thông tin tài khoản");
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1,4)).Merge().Value = "Sở Giáo dục và Đào tạo Hải Phòng";
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 4)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(2, 1), workSheet.Cell(2,4)).Merge().Value = "THPT Trần Nguyên Hãn";
+        workSheet.Range(workSheet.Cell(2, 1), workSheet.Cell(2, 4)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3,12)).Merge().Value = "DANH SÁCH GIÁO VIÊN";
+        workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3,12)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3,12)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(4, 1), workSheet.Cell(4,12)).Merge().Value = $"{year - 1}-{year}";
+        workSheet.Range(workSheet.Cell(4, 1), workSheet.Cell(4,12)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(4, 1), workSheet.Cell(4,12)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+        var titles = new List<string>()
+        {
+            "STT", "Họ tên", "Ngày sinh", "Giới tính", "Điện thoại", "Vị trí làm việc", "Môn dạy", "Nhóm chức năng", "Email",
+            "CMTND", "Bậc lương", "Hệ số lương"
+        };
+        int row = 6;
+        int col = 1;
+        for (int i = 0; i < titles.Count; i++ )
+        {
+            workSheet.Cell(row, col + i).Value = titles[i];
+            workSheet.Cell(row, col + i).Style.Font.Bold = true;
+        }
+        workSheet.Columns().AdjustToContents();
+        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(7, 12)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(7, 12)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
+        workSheet.RangeUsed().Style.Font.FontSize = 12;
+        workSheet.RangeUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         return workbook;
     }
 }

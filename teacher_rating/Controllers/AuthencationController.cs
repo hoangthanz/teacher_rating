@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using teacher_rating.Common;
 using teacher_rating.Common.Const;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
@@ -26,13 +27,15 @@ namespace teacher_rating.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITeacherRepository _teacherRepository;
+        private readonly IAccountService _accountService;
 
         public AuthencationController(UserManager<ApplicationUser> userManager,
-            RoleManager<ApplicationRole> roleManager, ITeacherRepository teacherRepository)
+            RoleManager<ApplicationRole> roleManager, ITeacherRepository teacherRepository, IAccountService accountService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _teacherRepository = teacherRepository;
+            _accountService = accountService;
         }
 
         [HttpPost]
@@ -88,7 +91,7 @@ namespace teacher_rating.Controllers
                     expires: DateTime.Now.AddMinutes(30),
                     signingCredentials: creds
                 );
-                var refreshToken = GenerateRefreshToken();
+                var refreshToken = _accountService.GenerateRefreshToken();
                 var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
                 return new LoginResponse
                 {
@@ -116,14 +119,7 @@ namespace teacher_rating.Controllers
                 };
             }
         }
-
-        public string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[32];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
-        }
+        
         [HttpPost]
         [Route("register")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(RegisterResponse))]

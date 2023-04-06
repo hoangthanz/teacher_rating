@@ -6,4 +6,5 @@ namespace teacher_rating.Common;
 public interface IAccountService
 {
     Task<IEnumerable<Claim>> GetClaimsByUser(TokenValidatedContext context);
+    string GenerateRefreshToken();
 }

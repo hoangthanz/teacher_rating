@@ -401,5 +401,22 @@ namespace teacher_rating.Controllers
                 );
             }
         }
+        [HttpPost("get-sample-excel")]
+        public async Task<IActionResult> GetSampleExcel([FromBody] int year)
+        {
+            string title = "MauBaoCaoThiDua.xlxs";
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var workbook = await _service.GetSampleExcelFile(year);
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                workbook.Dispose();
+                return File(
+                    fileContents: stream.ToArray(),
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: title
+                );
+            }
+        }
     }
 }

@@ -24,6 +24,12 @@ public class Teacher: BaseEntity
     
     [BsonElement("assessment_records")]
     public List<AssessmentRecord>? AssessmentRecords { get; set; }
+    public string? DateOfBirth { get; set; }
+    public string? Subject { get; set; }
+    public string? Position { get; set; }
+    public string? FunctionalGroup { get; set; }
+    public string? SalaryTier { get; set; }
+    public string? SalaryCoefficient { get; set; }
     
     public Guid? UserId { get; set; }
     public ApplicationUser? User { get; set; }

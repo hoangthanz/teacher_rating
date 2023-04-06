@@ -180,8 +180,13 @@ public class TeacherService : ITeacherService
                 teacher.Id = Guid.NewGuid().ToString();
                 teacher.Name = workSheet.Cells[row, 2].Value != null ? workSheet.Cells[row, 2].Value.ToString() : "";
                 teacher.CMND = workSheet.Cells[row, 10].Value != null ? workSheet.Cells[row, 10].Value.ToString() : "";
+                teacher.SalaryTier = workSheet.Cells[row, 11].Value != null ? workSheet.Cells[row, 11].Value.ToString() : "";
+                teacher.SalaryCoefficient = workSheet.Cells[row, 12].Value != null ? workSheet.Cells[row, 12].Value.ToString() : "";
                 teacher.Gender = workSheet.Cells[row, 4].Value != null ? workSheet.Cells[row, 4].Value.ToString() : "";
                 teacher.PhoneNumber = workSheet.Cells[row, 5].Value != null ? workSheet.Cells[row, 5].Value.ToString() : "";
+                teacher.Position = workSheet.Cells[row, 6].Value != null ? workSheet.Cells[row, 6].Value.ToString() : "";
+                teacher.Subject = workSheet.Cells[row, 7].Value != null ? workSheet.Cells[row, 7].Value.ToString() : "";
+                teacher.FunctionalGroup = workSheet.Cells[row, 8].Value != null ? workSheet.Cells[row, 8].Value.ToString() : "";
                 teacher.Email = workSheet.Cells[row, 9].Value != null ? workSheet.Cells[row, 9].Value.ToString() : "";
                 teacher.SchoolId = schoolId ?? _schoolId;
                 var oldTeacher = await _teacherRepository.GetTeacherByCMND(teacher.CMND);
