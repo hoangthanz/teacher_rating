@@ -14,7 +14,7 @@ public class SelfCriticismRepository: ISelfCriticismRepository
 {
     private readonly IMongoCollection<SelfCriticism> _mongoCollection;
     private readonly string? _userId;
-    private readonly string? _roles;
+    private readonly List<string>? _roles;
     public SelfCriticismRepository(
         IOptions<TeacherRatingDatabaseSettings> teacherRatingSettings, IHttpContextAccessor httpContext)
     {
@@ -28,8 +28,8 @@ public class SelfCriticismRepository: ISelfCriticismRepository
             teacherRatingSettings.Value.SelfCriticismCollectionName);
         _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null ?
             httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value : null;
-        _roles = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role) != null ?
-            httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value : null;
+        _roles = httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role) != null ?
+            httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role)?.Select(x => x.Value).ToList() : null;
     }
 
     public async Task<SelfCriticism> GetSelfCriticismById(string id)

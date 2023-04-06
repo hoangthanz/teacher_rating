@@ -25,6 +25,7 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly ISchoolRepository _schoolRepository;
     private UserManager<ApplicationUser> userManager;
     private RoleManager<ApplicationRole> roleManager;
+    private List<string>? _roles;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
     ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
@@ -36,6 +37,8 @@ public class SelfCriticismService : ISelfCriticismService
         _schoolRepository = schoolRepository;
         this.roleManager = roleManager;
         this.userManager = userManager;
+        _roles = httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role) != null ?
+            httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role)?.Select(x => x.Value).ToList() : null;
     }
     public async Task<bool> HasClaim(string userId, string Value)
     {
@@ -544,10 +547,10 @@ public class SelfCriticismService : ISelfCriticismService
     public async Task<XLWorkbook> GetSelfCriticismExcelFileNew(string schoolId, int month, int year, string userId, List<string> groupIds)
     {
         XLWorkbook workbook = new XLWorkbook();
-        
+
         var teachers = new List<Teacher>();
         var teacher = await _teacherRepository.GetTeacherByUserId(userId);
-        if (teacher != null && !(await HasClaim(userId, "Admin")))
+        if (teacher != null && !_roles.Contains("Admin"))
         {
             var group = await _teacherGroupRepository.GetTeacherGroupById(teacher.GroupId);
             if (teacher.Id == group.LeaderId)

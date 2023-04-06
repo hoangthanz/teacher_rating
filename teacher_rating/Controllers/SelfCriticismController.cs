@@ -28,7 +28,7 @@ namespace teacher_rating.Controllers
         private readonly IMapper _mapper;
         private readonly string? _userId;
         private readonly string? _teacherId;
-        private readonly string? _roles;
+        private readonly List<string>? _roles;
 
         public SelfCriticismController(
             UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
@@ -50,9 +50,8 @@ namespace teacher_rating.Controllers
             _teacherId = httpContext?.HttpContext?.User?.FindFirst("TeacherId") != null
                 ? httpContext?.HttpContext?.User?.FindFirst("TeacherId")?.Value
                 : null;
-            _roles = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role) != null
-                ? httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value
-                : null;
+            _roles = httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role) != null ?
+                httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role)?.Select(x => x.Value).ToList() : null;
         }
 
         [HttpPost]
@@ -379,6 +378,16 @@ namespace teacher_rating.Controllers
         public async Task<IActionResult> GetExcel(string schoolId, int year, int month, string userId,
             [FromBody] List<string> groupIds)
         {
+            string title ;
+            if (_roles.Contains("Admin"))
+            {
+                title = "BaocaoThiDua.xlxs";
+            }
+            else
+            {
+                var user = await _userManager.FindByIdAsync(_userId);
+                title = $"BaocaoThiDua_{user.DisplayName}_{month.ToString()}_{year.ToString()}.xlxs";
+            }
             using (MemoryStream stream = new MemoryStream())
             {
                 var workbook = await _service.GetSelfCriticismExcelFileNew(schoolId, month, year, userId, groupIds);
@@ -388,7 +397,7 @@ namespace teacher_rating.Controllers
                 return File(
                     fileContents: stream.ToArray(),
                     contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    fileDownloadName: "BaocaoThiDua.xlsx"
+                    fileDownloadName: title
                 );
             }
         }
