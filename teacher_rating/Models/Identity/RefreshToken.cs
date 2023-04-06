@@ -8,7 +8,7 @@ namespace teacher_rating.Models.Identity;
 public class RefreshToken
 {
     [Key]
-    public int Id { get; set; }
+    public string Id { get; set; }
 
     public string Token { get; set; }
     public DateTime Expires { get; set; }
@@ -19,8 +19,7 @@ public class RefreshToken
     public string ReplacedByToken { get; set; }
     public bool IsActive => Revoked == null && !IsExpired;
 
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     public DateTime CreatedDate { get; set; }
-    public DateTime UpdatedDate { get; set; }
 }

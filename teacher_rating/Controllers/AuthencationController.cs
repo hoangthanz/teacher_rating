@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,7 @@ using teacher_rating.Common.Const;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Properties.Dtos;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
@@ -85,7 +88,7 @@ namespace teacher_rating.Controllers
                     expires: DateTime.Now.AddMinutes(30),
                     signingCredentials: creds
                 );
-                var refreshToken = new JwtSecurityTokenHandler().WriteToken(token);
+                var refreshToken = GenerateRefreshToken();
                 var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
                 return new LoginResponse
                 {
@@ -114,6 +117,13 @@ namespace teacher_rating.Controllers
             }
         }
 
+        public string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
         [HttpPost]
         [Route("register")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(RegisterResponse))]
@@ -220,5 +230,41 @@ namespace teacher_rating.Controllers
             };
             return Ok(result);
         }
+        
+        // [AllowAnonymous]
+        // [HttpPost("refresh-token")]
+        // public async Task<IActionResult> RefreshToken(RequestRefreshToken refToken)
+        // {
+        //
+        //     var refreshToken = string.IsNullOrEmpty(refToken.Token) ? Request.Cookies["refreshToken"] : refToken.Token;
+        //     var response = await _userRepository.RefreshToken(refreshToken, IpAddress());
+        //
+        //     if (response == null)
+        //         return Unauthorized(new { message = "Invalid token" });
+        //
+        //     SetTokenCookie(response.RefreshToken);
+        //
+        //     return Ok(response);
+        // }
+        
+        private string IpAddress()
+        {
+            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+                return Request.Headers["X-Forwarded-For"];
+            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+        }
+        
+        private void SetTokenCookie(string token)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7),
+                SameSite = SameSiteMode.Strict
+            };
+
+            Response.Cookies.Append("refreshToken", token, cookieOptions);
+        }
+
     }
 }
