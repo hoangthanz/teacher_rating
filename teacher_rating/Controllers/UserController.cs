@@ -1,10 +1,12 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using teacher_rating.Common.Models;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
+using teacher_rating.Models.ViewModels;
 using teacher_rating.Mongodb.Data.Interfaces;
 using teacher_rating.Properties.Dtos;
 
@@ -18,6 +20,7 @@ namespace teacher_rating.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITeacherRepository _teacherRepository;
         private readonly string _schoolId;
+        private string _userId;
 
         public UserController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
             ITeacherRepository teacherRepository, IHttpContextAccessor httpContext)
@@ -27,6 +30,9 @@ namespace teacher_rating.Controllers
             _teacherRepository = teacherRepository;
             _schoolId = httpContext.HttpContext?.User.FindFirst("SchoolId") != null
                 ? httpContext.HttpContext.User.FindFirst("SchoolId")?.Value
+                : null;
+            _userId = httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier) != null
+                ? httpContext?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 : null;
         }
 
@@ -237,6 +243,22 @@ namespace teacher_rating.Controllers
                 Code = "00",
                 Data = null!
             });
+        }
+        
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePasswordWithAcount([FromBody] RequestChangePasswordWithAcount model)
+        {
+            var user = await _userManager.FindByIdAsync(_userId);
+            if (user == null)
+                return Ok(new RespondApi<string> { Result = ResultRespond.Fail, Code = "01", Message = "Không tìm thấy thông tin tài khoản" });
+
+            var resultLogin = await _userManager.CheckPasswordAsync(user, model.PasswordOld);
+            if (!resultLogin)
+                return Ok(new RespondApi<string> { Result = ResultRespond.Fail, Code = "01", Message = "Mật khẩu đã nhập không chính xác" });
+
+            await _userManager.ChangePasswordAsync(user, model.PasswordOld, model.PasswordNew);
+            return Ok(new RespondApi<string> { Result = ResultRespond.Success, Message = "Thành công" });
         }
     }
 }
