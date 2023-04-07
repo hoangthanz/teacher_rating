@@ -402,7 +402,7 @@ namespace teacher_rating.Controllers
             }
         }
         [HttpPost("get-sample-excel")]
-        public async Task<IActionResult> GetSampleExcel([FromBody] int year)
+        public async Task<IActionResult> GetSampleExcel([FromQuery] int year)
         {
             string title = "MauBaoCaoThiDua.xlxs";
             using (MemoryStream stream = new MemoryStream())
