@@ -197,31 +197,45 @@ public class SelfCriticismService : ISelfCriticismService
     {
         var workSheet = workbook.Worksheets.Add();
         workSheet.Name = "Tổng hợp";
-        int row = 1;
-        int col = 3;
+        var school = await _schoolRepository.GetById(schoolId);
         
-        workSheet.Column("C").Width = 40;
-        
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Value = school != null ? school.Name.ToUpper() : "TRƯỜNG THPT TRẦN NGUYÊN HÃN";
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Font.Underline = XLFontUnderlineValues.Single;
+        var row = 8;
+        var col = 3;
+        string titleOfSheet = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year} TOÀN TRƯỜNG";
+        workSheet.Range(workSheet.Cell(4, 3), workSheet.Cell(5, 9)).Merge().Value = titleOfSheet;
+        workSheet.Range(workSheet.Cell(4, 3), workSheet.Cell(5, 9)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(4, 3), workSheet.Cell(5, 9)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Range(workSheet.Cell(4, 3), workSheet.Cell(5, 9)).Merge().Style.Font.FontSize = 18;
         var teachers = await _teacherRepository.GetAllTeachers();
         teachers = teachers.Where(x => x.SchoolId == schoolId && Guid.TryParse(x.GroupId, out Guid parsedGuid)).ToList();
         var teacherGroups = await _teacherGroupRepository.GetAllTeacherGroups();
-        workSheet.Cell(row, col++).Value = "Tổng cộng";
-        workSheet.Cell(row, col++).Value = teachers.Count().ToString();
+        // workSheet.Cell(row, col++).Value = "Tổng cộng";
+        // workSheet.Cell(row, col++).Value = teachers.Count().ToString();
         var grades = await _gradeConfigurationRepository.GetAllGradeConfigurations();
         var teacherOfGroupOfGrades = await GetTeachersOfGradeOfGroup(grades, teachers, teacherGroups.ToList(), month, year);
         var allTeacherOfGrade = teacherOfGroupOfGrades.SelectMany(x => x.TeachersOfGrade).ToList();
-        foreach (var grade in grades)
-        {
-            var teachersOfGrade = allTeacherOfGrade.Where(x => x.Grade.Id == grade.Id).SelectMany(e => e.Teachers).ToList();
-            workSheet.Cell(row, col).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
-            workSheet.Cell(row + 1, col).Value = teachersOfGrade.Count().ToString();
-            col = col + 1;
-        }
-
-        col = 3;
-        row = row + 5;
-        workSheet.Cell(row, col++).Value = "Tổ";
-        workSheet.Cell(row, col++).Value = "Số lượng";
+        // foreach (var grade in grades)
+        // {
+        //     var teachersOfGrade = allTeacherOfGrade.Where(x => x.Grade.Id == grade.Id).SelectMany(e => e.Teachers).ToList();
+        //     workSheet.Cell(row, col).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
+        //     workSheet.Cell(row + 1, col).Value = teachersOfGrade.Count().ToString();
+        //     col = col + 1;
+        // }
+        //
+        // col = 3;
+        // row = row + 5;
+        workSheet.Cell(row, col).Value = "STT";
+        workSheet.Cell(row, col).Style.Font.Bold = true;
+        col++;
+        workSheet.Cell(row, col).Value = "Tổ";
+        workSheet.Cell(row, col).Style.Font.Bold = true;
+        col++;
+        workSheet.Cell(row, col).Value = "Số lượng";
+        workSheet.Cell(row, col).Style.Font.Bold = true;
+        col++;
         foreach (var grade in grades)
         {
             workSheet.Cell(row, col).Value = grade != null ? grade.Name : "Chưa có xếp loại phù hợp";
@@ -230,19 +244,22 @@ public class SelfCriticismService : ISelfCriticismService
         }
 
         col = 3;
-        row = row + 1;
-        foreach (var teacherOfGroupOfGrade in teacherOfGroupOfGrades)
+        row++;
+        for (var i = 0; i < teacherOfGroupOfGrades.Count; i++ )
         {
-            workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Value = teacherOfGroupOfGrade.Group.Name;
+            workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Value = i+1;
             workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             col++;
-            var count = teacherOfGroupOfGrade.TeachersOfGrade.Sum(x => x.Teachers.Count);
+            workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Value = teacherOfGroupOfGrades[i].Group.Name;
+            workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            col++;
+            var count = teacherOfGroupOfGrades[i].TeachersOfGrade.Sum(x => x.Teachers.Count);
             workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Value = count.ToString();
             workSheet.Range(workSheet.Cell(row, col),workSheet.Cell(row+1, col)).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             col++;
             if (count > 0)
             {
-                foreach (var teacherOfGrade in teacherOfGroupOfGrade.TeachersOfGrade)
+                foreach (var teacherOfGrade in teacherOfGroupOfGrades[i].TeachersOfGrade)
                 {
                     workSheet.Cell(row, col).Value = teacherOfGrade.Teachers.Count;
                     workSheet.Cell(row + 1, col++).Value = (teacherOfGrade.Teachers.Count * 100/ count).ToString() + "%" ;
@@ -252,6 +269,7 @@ public class SelfCriticismService : ISelfCriticismService
             col = 3;
         }
         workSheet.Cell(row, col++).Value = "Tổng:";
+        col++;
         workSheet.Cell(row, col++).Value = teachers.Count().ToString();
         foreach (var grade in grades)
         {
@@ -259,11 +277,12 @@ public class SelfCriticismService : ISelfCriticismService
             workSheet.Cell(row, col++).Value = teachersOfGrade.Count().ToString();
         }
         workSheet.Columns().AdjustToContents();
-        workSheet.Range(workSheet.Cell(6, 3), workSheet.Cell(row, col-1)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        workSheet.Range(workSheet.Cell(6, 3), workSheet.Cell(row, col-1)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(8, 3), workSheet.Cell(row, col)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(8, 3), workSheet.Cell(row, col)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
         workSheet.RangeUsed().Style.Font.FontSize = 12;
         workSheet.RangeUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        workSheet.Column("D").Width = 40;
         return workbook;
     }
     

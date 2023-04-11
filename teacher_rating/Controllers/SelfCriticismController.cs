@@ -381,12 +381,12 @@ namespace teacher_rating.Controllers
             string title ;
             if (_roles.Contains("Admin"))
             {
-                title = "BaocaoThiDua.xlxs";
+                title = "BaocaoThiDua.xlsx";
             }
             else
             {
                 var user = await _userManager.FindByIdAsync(_userId);
-                title = $"BaocaoThiDua_{user.DisplayName}_{month.ToString()}_{year.ToString()}.xlxs";
+                title = $"BaocaoThiDua_{user.DisplayName}_{month.ToString()}_{year.ToString()}.xlsx";
             }
             using (MemoryStream stream = new MemoryStream())
             {
@@ -404,7 +404,7 @@ namespace teacher_rating.Controllers
         [HttpPost("get-sample-excel")]
         public async Task<IActionResult> GetSampleExcel([FromQuery] int year)
         {
-            string title = "MauBaoCaoThiDua.xlxs";
+            string title = "MauBaoCaoThiDua.xlsx";
             using (MemoryStream stream = new MemoryStream())
             {
                 var workbook = await _service.GetSampleExcelFile(year);
