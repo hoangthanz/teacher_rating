@@ -202,6 +202,7 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Value = school != null ? school.Name.ToUpper() : "TRƯỜNG THPT TRẦN NGUYÊN HÃN";
         workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Font.Bold = true;
         workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Font.Underline = XLFontUnderlineValues.Single;
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 5)).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
         var row = 8;
         var col = 3;
         string titleOfSheet = $"KẾT QUẢ THI ĐUA THÁNG {month}/{year} TOÀN TRƯỜNG";
