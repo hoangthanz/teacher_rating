@@ -401,6 +401,24 @@ namespace teacher_rating.Controllers
                 );
             }
         }
+
+        [HttpPost("get-competition_board")]
+        public async Task<IActionResult> GetCompetitionBoard([FromBody] GetCompetitionBoardRequest model)
+        {
+            string title = "Bảng thi đua tổ viên";
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var workbook = await _service.GetCompetitionBoard(model);
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                workbook.Dispose();
+                return File(
+                    fileContents: stream.ToArray(),
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: title
+                );
+            }
+        }
         [HttpPost("get-sample-excel")]
         public async Task<IActionResult> GetSampleExcel([FromQuery] int year)
         {

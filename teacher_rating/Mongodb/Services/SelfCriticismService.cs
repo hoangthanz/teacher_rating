@@ -2,6 +2,7 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver.Linq;
+using ServiceStack;
 using teacher_rating.Models;
 using teacher_rating.Models.Identity;
 using teacher_rating.Models.ViewModels;
@@ -15,6 +16,7 @@ public interface ISelfCriticismService
     Task<XLWorkbook> GetSelfCriticismExcelFile(string schoolId, int month, int year, string userId, List<string> groupIds);
     Task<XLWorkbook> GetSelfCriticismExcelFileNew(string schoolId, int month, int year, string userId, List<string> groupIds);
     Task<XLWorkbook> GetSampleExcelFile(int year);
+    Task<XLWorkbook> GetCompetitionBoard(GetCompetitionBoardRequest model);
 }
 
 public class SelfCriticismService : ISelfCriticismService
@@ -24,12 +26,13 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly IGradeConfigurationRepository _gradeConfigurationRepository;
     private readonly ITeacherGroupRepository _teacherGroupRepository;
     private readonly ISchoolRepository _schoolRepository;
+    private readonly IAssessmentCriteriaRepository _assessmentCriteria;
     private UserManager<ApplicationUser> userManager;
     private RoleManager<ApplicationRole> roleManager;
     private List<string>? _roles;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
-    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
+    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, IAssessmentCriteriaRepository assessmentCriteria)
     {
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
@@ -38,6 +41,7 @@ public class SelfCriticismService : ISelfCriticismService
         _schoolRepository = schoolRepository;
         this.roleManager = roleManager;
         this.userManager = userManager;
+        _assessmentCriteria = assessmentCriteria;
         _roles = httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role) != null ?
             httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role)?.Select(x => x.Value).ToList() : null;
     }
@@ -641,6 +645,67 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Range(workSheet.Cell(6, 1), workSheet.Cell(7, 12)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
         workSheet.RangeUsed().Style.Font.FontSize = 12;
+        workSheet.RangeUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        return workbook;
+    }
+
+    public async Task<XLWorkbook> GetCompetitionBoard(GetCompetitionBoardRequest model)
+    {
+        XLWorkbook workbook = new XLWorkbook();
+        var workSheet = workbook.Worksheets.Add("Báo cáo thi đua");
+        var school = await _schoolRepository.GetById(model.SchoolId);
+        var teachers = await _teacherRepository.GetTeachersOfGroup(model.GroupId);
+        var accessments = await _assessmentCriteria.GetAssessmentCriteriasBySchoolId(model.SchoolId);
+        var group = await _teacherGroupRepository.GetTeacherGroupById(model.GroupId);
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1,accessments.Count + 1)).Merge().Value = $"BẢNG ĐIỂM THI ĐUA THÁNG {model.Month} NĂM {model.Year}";
+        workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1,accessments.Count + 1)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(2, 1), workSheet.Cell(2,accessments.Count + 1)).Merge().Value = $"Họ và tên: ";
+        workSheet.Range(workSheet.Cell(2, 1), workSheet.Cell(2,accessments.Count + 1)).Merge().Style.Font.Bold = true;
+        workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3,accessments.Count + 1)).Merge().Value = $"{group.Name}";
+        workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3,accessments.Count + 1)).Merge().Style.Font.Bold = true;
+        
+        workSheet.Cell(5, 1).Value = "STT";
+        workSheet.Cell(5, 1).Style.Font.Bold = true;
+        workSheet.Cell(5, 2).Value = "Họ và tên";
+        workSheet.Cell(5, 2).Style.Font.Bold = true;
+        int col = 3; int row = 5;
+        foreach (var accessment in accessments)
+        {
+            workSheet.Cell(row, col).Value = accessment.Name;
+            workSheet.Cell(row, col++).Style.Font.Bold = true;
+        }
+        
+        col = 3; row++;
+        foreach (var teacher in teachers)
+        {
+            workSheet.Cell(row, 1).Value = row - 5;
+            workSheet.Cell(row, 2).Value = teacher.Name;
+            
+            var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(teacher.Id, model.Month, model.Year);
+            foreach (var selfCriticism in selfCriticisms)
+            {
+                if (selfCriticism.AssessmentCriterias.Any())
+                {
+                    foreach (var assessmentCriteria in selfCriticism.AssessmentCriterias)
+                    {
+                        var accessment = accessments.FirstOrDefault(x => x.Id == assessmentCriteria.Id);
+                        if (accessment != null)
+                        {
+                            workSheet.Cell(row, accessments.IndexOf(accessment) + 2).Value = assessmentCriteria.TotalScore;
+                        }
+                    }
+                }
+            }
+            row++; col = 3;
+        }
+        
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5 + teachers.Count, 2 + accessments.Count)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+        workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(5 + teachers.Count, 2 + accessments.Count)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
+        workSheet.RangeUsed().Style.Font.FontSize = 12;
+        workSheet.Columns().Width = 10;
+        workSheet.Column("A").AdjustToContents();
+        workSheet.Column("B").AdjustToContents();
         workSheet.RangeUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
         return workbook;
     }

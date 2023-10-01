@@ -57,7 +57,7 @@ var mongoDbSettings = new MongoDbIdentityConfiguration()
 {
     MongoDbSettings = new MongoDbSettings()
     {
-        ConnectionString = $"mongodb://demothpttnh.ddns.net:8011",
+        ConnectionString = $"mongodb://localhost:27017",
         DatabaseName = $"TeacherRatingDb"
     },
     IdentityOptionsAction = options =>

@@ -56,4 +56,9 @@ public class AssessmentCriteriaRepository : IAssessmentCriteriaRepository
     {
         await _mongoCollection.DeleteOneAsync(t => t.Id == id);
     }
+
+    public async Task<List<AssessmentCriteria>> GetAssessmentCriteriasBySchoolId(string schoolId)
+    {
+        return await _mongoCollection.Find(x => x.SchoolId == schoolId).ToListAsync();
+    }
 }

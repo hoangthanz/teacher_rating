@@ -11,4 +11,5 @@ public interface IAssessmentCriteriaRepository
     Task AddAssessmentCriterList(List<AssessmentCriteria> criteriaList);
     Task UpdateAssessmentCriter(AssessmentCriteria teacher);
     Task RemoveAssessmentCriter(string id);
+    Task<List<AssessmentCriteria>> GetAssessmentCriteriasBySchoolId(string schoolId);
 }
