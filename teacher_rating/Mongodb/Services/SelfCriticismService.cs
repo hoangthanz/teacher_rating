@@ -17,6 +17,7 @@ public interface ISelfCriticismService
     Task<XLWorkbook> GetSelfCriticismExcelFileNew(string schoolId, int month, int year, string userId, List<string> groupIds);
     Task<XLWorkbook> GetSampleExcelFile(int year);
     Task<XLWorkbook> GetCompetitionBoard(GetCompetitionBoardRequest model);
+    Task<XLWorkbook> GetPersonalArchievement(GetPersonalArchievementRequest model);
 }
 
 public class SelfCriticismService : ISelfCriticismService
@@ -27,12 +28,13 @@ public class SelfCriticismService : ISelfCriticismService
     private readonly ITeacherGroupRepository _teacherGroupRepository;
     private readonly ISchoolRepository _schoolRepository;
     private readonly IAssessmentCriteriaRepository _assessmentCriteria;
+    private readonly IAssessmentCriteriaGroupRepository _assessmentCriteriaGroup;
     private UserManager<ApplicationUser> userManager;
     private RoleManager<ApplicationRole> roleManager;
     private List<string>? _roles;
 
     public SelfCriticismService(ISelfCriticismRepository selfCriticismRepository, ITeacherRepository teacherRepository, IGradeConfigurationRepository gradeConfigurationRepository
-    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, IAssessmentCriteriaRepository assessmentCriteria)
+    ,IHttpContextAccessor httpContext, ITeacherGroupRepository teacherGroupRepository, ISchoolRepository schoolRepository, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, IAssessmentCriteriaRepository assessmentCriteria, IAssessmentCriteriaGroupRepository assessmentCriteriaGroup)
     {
         _selfCriticismRepository = selfCriticismRepository;
         _teacherRepository = teacherRepository;
@@ -42,6 +44,7 @@ public class SelfCriticismService : ISelfCriticismService
         this.roleManager = roleManager;
         this.userManager = userManager;
         _assessmentCriteria = assessmentCriteria;
+        _assessmentCriteriaGroup = assessmentCriteriaGroup;
         _roles = httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role) != null ?
             httpContext?.HttpContext?.User?.FindAll(ClaimTypes.Role)?.Select(x => x.Value).ToList() : null;
     }
@@ -707,6 +710,81 @@ public class SelfCriticismService : ISelfCriticismService
         workSheet.Column("A").AdjustToContents();
         workSheet.Column("B").AdjustToContents();
         workSheet.RangeUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        return workbook;
+    }
+
+    public async Task<XLWorkbook> GetPersonalArchievement(GetPersonalArchievementRequest model)
+    {
+        XLWorkbook workbook = new XLWorkbook();
+        var teachers = await _teacherRepository.GetByIds(model.TeacherIds);
+        foreach (var teacher in teachers)
+        {
+            var workSheet = workbook.Worksheets.Add(teacher.Name + "_" + teacher.User.UserName);
+            if(model.Year != null)
+                workSheet.Range(workSheet.Cell(1,1), workSheet.Cell(1,7)).Merge().Value = $"BẢNG ĐIỂM THI ĐUA THÁNG {model.Month} NĂM {model.Year}";
+            else workSheet.Range(workSheet.Cell(1,1), workSheet.Cell(1,7)).Merge().Value = $"BẢNG ĐIỂM THI ĐUA NĂM {model.Year}";
+            workSheet.Range(workSheet.Cell(1, 1), workSheet.Cell(1, 7)).Merge().Style.Font.Bold = true;
+            workSheet.Range(workSheet.Cell(2, 1), workSheet.Cell(2, 7)).Merge().Value = $"Họ và tên: {teacher.Name}";
+            workSheet.Range(workSheet.Cell(2, 1), workSheet.Cell(2, 7)).Merge().Style.Font.Bold = true;
+            var group = await _teacherGroupRepository.GetTeacherGroupById(teacher.GroupId);
+            if (group != null)
+            {
+                workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3, 7)).Merge().Value = group.Name;
+                workSheet.Range(workSheet.Cell(3, 1), workSheet.Cell(3, 7)).Merge().Style.Font.Bold = true;
+            }
+
+            int row = 6; int col = 1;
+            workSheet.Cell(5, 1).Value = "STT";
+            workSheet.Cell(5, 1).Style.Font.Bold = true;
+            workSheet.Range(workSheet.Cell(5, 2), workSheet.Cell(5, 3)).Merge().Value = $"DIỄN GIẢI NỘI DUNG CÁC TIÊU CHÍ";
+            workSheet.Range(workSheet.Cell(5, 2), workSheet.Cell(5, 3)).Merge().Style.Font.Bold = true;
+            workSheet.Cell(5, 4).Value = "ĐIỂM CỘNG";
+            workSheet.Cell(5, 4).Style.Font.Bold = true;
+            workSheet.Cell(5, 5).Value = "ĐIỂM TRỪ";
+            workSheet.Cell(5, 5).Style.Font.Bold = true;
+            workSheet.Cell(5, 6).Value = "TỔNG";
+            workSheet.Cell(5, 6).Style.Font.Bold = true;
+            workSheet.Cell(5, 7).Value = "XẾP LOẠI";
+            workSheet.Cell(5, 7).Style.Font.Bold = true;
+            
+            var selfCriticisms = await _selfCriticismRepository.GetSelfCriticismsByTeacher(teacher.Id, model.Month, model.Year);
+            var acessments = selfCriticisms.SelectMany(x => x.AssessmentCriterias).ToList();
+            for (int i = 0 ; i < acessments.Count ; i++)
+            {
+                col = 1;
+                workSheet.Cell(row, col++).Value = i + 1;
+                var accessMentGroup = await _assessmentCriteriaGroup.GetAssessmentCriterGroupById(acessments[i].AssessmentCriteriaGroupId);
+                workSheet.Cell(row, col).Value = accessMentGroup.Name;
+                workSheet.Cell(row, col++).Style.Font.Bold = true;
+                workSheet.Cell(row, col++).Value = acessments[i].Name;
+                workSheet.Cell(row, col).Style.Font.Bold = true;
+                workSheet.Cell(row, col++).Value = !acessments[i].IsDeduct ? acessments[i].Value : "";
+                workSheet.Cell(row, col).Style.Font.Bold = true;
+                workSheet.Cell(row, col++).Value = acessments[i].IsDeduct ? acessments[i].Value : "";
+                row++;
+            }
+            workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(row, 7)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            workSheet.Range(workSheet.Cell(5, 1), workSheet.Cell(row, 7)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            var total1 = acessments.Where(x => !x.IsDeduct).Sum(x => x.Value);
+            var total2 = acessments.Where(x => x.IsDeduct).Sum(x => x.Value);
+            workSheet.Cell(row, 4).Value = total1;
+            workSheet.Cell(row, 4).Style.Font.Bold = true;
+            workSheet.Cell(row, 5).Value = total2;
+            workSheet.Cell(row, 5).Style.Font.Bold = true;
+            workSheet.Range(workSheet.Cell(6, 6), workSheet.Cell(row, 6)).Merge().Value = total1 - total2;
+            workSheet.Range(workSheet.Cell(6, 6), workSheet.Cell(row, 6)).Style.Font.Bold = true;
+            workSheet.Range(workSheet.Cell(6, 6), workSheet.Cell(row, 6)).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            workSheet.Range(workSheet.Cell(6, 7), workSheet.Cell(row, 7)).Merge().Value = "";
+            workSheet.Range(workSheet.Cell(6, 7), workSheet.Cell(row, 7)).Style.Font.Bold = true;
+            workSheet.Range(workSheet.Cell(6, 7), workSheet.Cell(row, 7)).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+            workSheet.Columns().AdjustToContents();
+            
+            workSheet.RangeUsed().Style.Font.FontName = "Times New Roman";
+            workSheet.RangeUsed().Style.Font.FontSize = 10;
+            workSheet.RangeUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        }
+
         return workbook;
     }
 }

@@ -436,5 +436,22 @@ namespace teacher_rating.Controllers
                 );
             }
         }
+        [HttpPost("get-personal-archievement-excel")]
+        public async Task<IActionResult> GetPersonalArchivementExcel([FromBody] GetPersonalArchievementRequest model)
+        {
+            string title = "MauThanhTichCanhan.xlsx";
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var workbook = await _service.GetPersonalArchievement(model);
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                workbook.Dispose();
+                return File(
+                    fileContents: stream.ToArray(),
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: title
+                );
+            }
+        }
     }
 }
